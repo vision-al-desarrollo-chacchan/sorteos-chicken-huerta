@@ -1,31 +1,483 @@
 "use client";
-
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import SorteoInfo from "./SorteoInfo";
 type TicketResult = { ok: boolean; tickets?: string[]; message?: string };
-
 export default function Home() {
-  const [cantidad, setCantidad] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<TicketResult | null>(null);
-  const [consulta, setConsulta] = useState("");
-  const [consultaMsg, setConsultaMsg] = useState("");
-  async function registrar(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setLoading(true); setResult(null);
-    const form = new FormData(event.currentTarget); form.set("cantidad",String(cantidad));
-    const response = await fetch("/api/participantes", { method: "POST", body: form });
-    setResult(await response.json()); setLoading(false);
+  const [cantidad, setCantidad] = useState(1),
+    [loading, setLoading] = useState(false),
+    [result, setResult] = useState<TicketResult | null>(null),
+    [consulta, setConsulta] = useState(""),
+    [consultaDni, setConsultaDni] = useState(""),
+    [consultaMsg, setConsultaMsg] = useState(""),
+    [open, setOpen] = useState(false),
+    [step, setStep] = useState(1),
+    [nombre, setNombre] = useState(""),
+    [dni, setDni] = useState(""),
+    [celular, setCelular] = useState(""),
+    [yape, setYape] = useState(""),
+    [titular, setTitular] = useState("Elvis Esteban Infantes Huerta"),
+    [precio, setPrecio] = useState(5),
+    [premio1, setPremio1] = useState("Rezzio Kratos Pro 4.0"),
+    [premio2, setPremio2] = useState("Tekken 250 Pro"),
+    [imagen1, setImagen1] = useState("/kratos-pro.png"),
+    [imagen2, setImagen2] = useState("/tekken-250-pro.png"),
+    [condiciones, setCondiciones] = useState("Cada ticket aprobado participa por ambos premios.");
+  useEffect(() => {
+    const close = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, []);
+  useEffect(() => {
+    fetch("/api/sorteo", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => {
+        setYape(d.yape || "");
+        setTitular(d.titular || "Elvis Esteban Infantes Huerta");
+        setPrecio(d.precio || 5); setPremio1(d.premio1 || "Rezzio Kratos Pro 4.0");
+        setPremio2(d.premio2 || "Tekken 250 Pro"); setImagen1(d.imagen1 || "/kratos-pro.png");
+        setImagen2(d.imagen2 || "/tekken-250-pro.png"); setCondiciones(d.condiciones || "");
+      })
+      .catch(() => {});
+  }, []);
+  function abrir() {
+    setOpen(true);
+    setStep(1);
+    setResult(null);
   }
-  async function consultar(event: FormEvent) {
-    event.preventDefault(); const response = await fetch(`/api/participantes?ticket=${encodeURIComponent(consulta)}`); const data = await response.json();
-    setConsultaMsg(data.encontrado ? `${data.ticket} pertenece a ${data.nombre}. Estado: ${data.estado}.` : "No encontramos ese ticket.");
+  function cerrar() {
+    if (!loading) setOpen(false);
   }
-  return <main>
-    <header className="nav"><a className="brand" href="#inicio"><img src="/logo-chicken-huerta.jpg" alt="Logo Chicken Huerta"/><span>Chicken Huerta</span></a><nav><a href="#premios">Premios</a><a href="#participar">Participar</a><a href="#consultar">Consultar ticket</a></nav></header>
-    <section className="hero" id="inicio"><div className="heroCopy"><p className="eyebrow">SORTEO OFICIAL · CHICKEN HUERTA</p><h1>Un ticket.<br/><em>Dos premios.</em></h1><p className="lead">Participa por ambos premios con cada ticket. Compra todos los que quieras y aumenta tus oportunidades de ganar.</p><div className="price"><strong>S/5</strong><span>por ticket<br/>venta ilimitada</span></div><a className="primary" href="#participar">Comprar mis tickets →</a></div>
-    <div className="heroCard" id="premios"><img className="motosImage" src="/motos-sorteo.png" alt="Motos Rezzio Kratos Pro 4.0 y Tekken 250 Pro, premios del sorteo"/><p>Participas automáticamente por</p><div className="prize first"><span>1.er premio</span><strong>Rezzio Kratos Pro 4.0</strong><small>Moto nueva</small></div><div className="prize"><span>2.do premio</span><strong>Tekken 250 Pro</strong><small>Moto nueva</small></div><div className="secure">✓ Un ticket participa por las dos motos</div></div></section>
-    <section className="steps"><article><b>01</b><div><strong>Elige tu cantidad</strong><span>No hay límite de tickets por persona.</span></div></article><article><b>02</b><div><strong>Realiza el pago</strong><span>Yape o Plin: S/5 por cada ticket.</span></div></article><article><b>03</b><div><strong>Recibe tus códigos</strong><span>Guárdalos para el día del sorteo.</span></div></article></section>
-    <section className="register" id="participar"><div className="sectionIntro"><p className="eyebrow">PARTICIPA AHORA</p><h2>Registra tu compra</h2><p>Completa tus datos y adjunta tu comprobante. Los tickets quedarán pendientes hasta que el administrador confirme el pago.</p></div><form onSubmit={registrar}><label>Nombre completo<input name="nombre" required minLength={3} placeholder="Ej. María López" /></label><div className="row"><label>DNI<input name="dni" required inputMode="numeric" pattern="[0-9]{8}" maxLength={8} placeholder="8 dígitos" /></label><label>Celular<input name="celular" required inputMode="tel" pattern="[0-9]{9}" maxLength={9} placeholder="9 dígitos" /></label></div><div className="row"><label>Cantidad de tickets<input type="number" min={1} max={100} value={cantidad} onChange={(e) => setCantidad(Math.max(1, Number(e.target.value)))} /></label><label>N.º de operación<input name="operacion" required placeholder="Código de Yape o Plin" /></label></div><label>Comprobante de pago<input className="fileInput" type="file" name="comprobante" accept="image/jpeg,image/png,image/webp,application/pdf" required/><small>Foto o PDF, máximo 5 MB.</small></label><div className="total"><span>Total a pagar</span><strong>S/{cantidad * 5}</strong></div><label className="check"><input type="checkbox" required /> Confirmo que mis datos son correctos y acepto las bases del sorteo.</label><button className="primary submit" disabled={loading}>{loading ? "Registrando compra..." : "Registrar y obtener tickets"}</button>{result && <div className={result.ok ? "success" : "error"}>{result.ok ? <><b>¡Registro recibido!</b><p>Tus tickets: {result.tickets?.join(", ")}</p><small>Estado: pendiente de validación de pago.</small></> : result.message}</div>}</form></section>
-    <section className="lookup" id="consultar"><div><p className="eyebrow">VERIFICACIÓN</p><h2>Consulta tu ticket</h2><p>Ingresa el código completo para comprobar su registro.</p></div><form onSubmit={consultar}><input value={consulta} onChange={(e) => setConsulta(e.target.value.toUpperCase())} placeholder="CH-000001" required/><button>Consultar</button>{consultaMsg && <p className="lookupResult">{consultaMsg}</p>}</form></section>
-    <footer><strong>Chicken Huerta</strong><span>Sorteo transparente · Tickets ilimitados · S/5 cada uno</span><small>Conserva tus códigos. La fecha del sorteo y las bases oficiales serán anunciadas por Chicken Huerta.</small></footer>
-  </main>;
+  function continuar(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setStep(2);
+  }
+  async function registrar(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    setResult(null);
+    const form = new FormData(e.currentTarget);
+    form.set("cantidad", String(cantidad));
+    form.set("nombre", nombre);
+    form.set("dni", dni);
+    form.set("celular", celular);
+    try {
+      const r = await fetch("/api/participantes", {
+        method: "POST",
+        body: form,
+      });
+      setResult(await r.json());
+    } catch {
+      setResult({
+        ok: false,
+        message: "No pudimos registrar la compra. Intenta nuevamente.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+  async function consultar(e: FormEvent) {
+    e.preventDefault();
+    const r = await fetch(
+        `/api/participantes?ticket=${encodeURIComponent(consulta)}&identidad=${encodeURIComponent(consultaDni)}`,
+      ),
+      d = await r.json();
+    setConsultaMsg(
+      d.encontrado
+        ? `${d.ticket} pertenece a ${d.nombre}. Estado: ${d.estado}.`
+        : d.message || "No encontramos ese ticket.",
+    );
+  }
+  function texto() {
+    return `Sorteo Chicken Huerta\nMis tickets: ${result?.tickets?.join(", ")}\nEstado: pendiente de revisión de pago.`;
+  }
+  async function copiar() {
+    await navigator.clipboard.writeText(result?.tickets?.join(", ") || "");
+    alert("Tickets copiados");
+  }
+  function descargar() {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([texto()], { type: "text/plain" }));
+    a.download = "tickets-chicken-huerta.txt";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+  function compartir() {
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(texto())}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
+  }
+  function imprimir() {
+    const codes = result?.tickets || [];
+    const w = window.open("", "_blank", "noopener,noreferrer");
+    if (!w) return;
+    w.document.write(
+      `<title>Tickets Chicken Huerta</title><style>body{font-family:Arial;padding:24px}.t{border:2px dashed #222;padding:22px;margin:12px;display:inline-block;width:290px;text-align:center}.t b{display:block;font-size:28px;margin:18px}</style>${codes.map((c) => `<article class="t"><h2>CHICKEN HUERTA</h2><p>${premio1} y ${premio2} · S/${precio}</p><b>${c}</b><small>Pendiente de validación de pago</small></article>`).join("")}`,
+    );
+    w.document.close();
+    w.print();
+  }
+  return (
+    <main>
+      <header className="nav">
+        <a className="brand" href="#inicio">
+          <img src="/logo-chicken-huerta.jpg" alt="Logo Chicken Huerta" />
+          <span>Chicken Huerta</span>
+        </a>
+        <nav>
+          <a href="#premios">Premios</a>
+          <button onClick={abrir}>Participar</button>
+          <a href="#bases">Bases</a>
+          <a href="#consultar">Consultar ticket</a>
+        </nav>
+      </header>
+      <section className="prizeShowcase" id="inicio">
+        <div className="showcaseIntro">
+          <p className="eyebrow">SORTEO VIGENTE · CHICKEN HUERTA</p>
+          <h1>Participa por dos motos</h1>
+          <p>
+            Cada ticket cuesta S/{precio} y participa automáticamente por ambos
+            premios.
+          </p>
+        </div>
+        <SorteoInfo compact />
+        <div className="bikeCards" id="premios">
+          <article className="bikeCard">
+            <div className="bikePhoto"><img className="configPrizeImage" src={imagen1} alt={premio1} />
+              <span className="ticketBadge">
+                <b>S/{precio}</b>
+                <small>POR TICKET</small>
+              </span>
+              <div>
+                <small>PRIMER PREMIO</small>
+                <h2>{premio1}</h2>
+              </div>
+            </div>
+            <div className="bikeInfo">
+              <span>PREMIO PRINCIPAL</span>
+              <h3>{premio1}</h3>
+              <p>Moto nueva · Participación incluida con cada ticket</p>
+              <button onClick={abrir}>PARTICIPAR →</button>
+            </div>
+          </article>
+          <article className="bikeCard">
+            <div className="bikePhoto"><img className="configPrizeImage" src={imagen2} alt={premio2} />
+              <span className="ticketBadge">
+                <b>S/{precio}</b>
+                <small>POR TICKET</small>
+              </span>
+              <div>
+                <small>SEGUNDO PREMIO</small>
+                <h2>{premio2}</h2>
+              </div>
+            </div>
+            <div className="bikeInfo">
+              <span>SEGUNDO PREMIO</span>
+              <h3>{premio2}</h3>
+              <p>Moto nueva · Participación incluida con cada ticket</p>
+              <button onClick={abrir}>PARTICIPAR →</button>
+            </div>
+          </article>
+        </div>
+        <div className="bothNotice">
+          ✓ Un ticket participa por las dos motos · Puedes comprar todos los
+          tickets que quieras · {condiciones}
+        </div>
+      </section>
+      <section className="steps">
+        <article>
+          <b>01</b>
+          <div>
+            <strong>Completa tus datos</strong>
+            <span>Indica cuántos tickets deseas comprar.</span>
+          </div>
+        </article>
+        <article>
+          <b>02</b>
+          <div>
+            <strong>Paga por Yape</strong>
+            <span>Después aparecerá el QR y el total exacto.</span>
+          </div>
+        </article>
+        <article>
+          <b>03</b>
+          <div>
+            <strong>Recibe tus códigos</strong>
+            <span>
+              Se entregan inmediatamente y quedan pendientes de revisión.
+            </span>
+          </div>
+        </article>
+      </section>
+      <section className="quickJoin">
+        <p className="eyebrow">PARTICIPA AHORA</p>
+        <h2>¿Listo para ganar?</h2>
+        <p>
+          Llena tus datos, paga con Yape y recibe tus tickets en pocos pasos.
+        </p>
+        <button className="primary" onClick={abrir}>
+          COMPRAR TICKETS →
+        </button>
+      </section>
+      <section className="rules" id="bases">
+        <p className="eyebrow">BASES PRINCIPALES</p>
+        <h2>Reglas del sorteo</h2>
+        <div className="ruleGrid">
+          <article>
+            <b>S/{precio} por ticket</b>
+            <span>Cada código participa por ambos premios.</span>
+          </article>
+          <article>
+            <b>Compra ilimitada</b>
+            <span>
+              Una persona puede comprar varios tickets con el mismo DNI y
+              WhatsApp.
+            </span>
+          </article>
+          <article>
+            <b>Validación de pago</b>
+            <span>
+              Los tickets se entregan al registrarse y se anulan si el pago es
+              falso o inválido.
+            </span>
+          </article>
+          <article>
+            <b>Sorteo transparente</b>
+            <span>
+              Solo participan tickets con pago confirmado. La selección queda
+              registrada.
+            </span>
+          </article>
+          <article>
+            <b>Dos premios</b>
+            <span>Primero {premio1} y segundo {premio2}.</span>
+          </article>
+          <article>
+            <b>Fecha y hora oficiales</b>
+            <span>
+              El inicio y la finalización se muestran en la portada y se
+              actualizan desde el panel.
+            </span>
+          </article>
+        </div>
+      </section>
+      <SorteoInfo />
+      <section className="lookup" id="consultar">
+        <div>
+          <p className="eyebrow">VERIFICACIÓN</p>
+          <h2>Consulta tu ticket</h2>
+          <p>Ingresa el código completo para comprobar su registro y estado.</p>
+        </div>
+        <form onSubmit={consultar}>
+          <input
+            value={consulta}
+            onChange={(e) => setConsulta(e.target.value.toUpperCase())}
+            placeholder="CH-000001"
+            required
+          />
+          <input
+            className="lookupIdentity"
+            value={consultaDni}
+            onChange={(e) =>
+              setConsultaDni(e.target.value.replace(/\D/g, "").slice(0, 4))
+            }
+            inputMode="numeric"
+            placeholder="Últimos 4 dígitos del DNI"
+            required
+          />
+          <button>Consultar</button>
+          {consultaMsg && <p className="lookupResult">{consultaMsg}</p>}
+        </form>
+      </section>
+      <footer>
+        <strong>Chicken Huerta</strong>
+        <span>Sorteo transparente · Tickets ilimitados · S/{precio} cada uno</span>
+        <small>Conserva tus códigos. <a href="/bases-legales">Bases legales</a> · <a href="/privacidad">Privacidad</a></small>
+      </footer>
+      {open && (
+        <div
+          className="modalBackdrop"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) cerrar();
+          }}
+        >
+          <section
+            className="ticketModal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalTitle"
+          >
+            <button className="modalClose" onClick={cerrar} aria-label="Cerrar">
+              ×
+            </button>
+            <div className="modalProgress">
+              <span className={step === 1 ? "active" : "done"}>
+                1 · Tus datos
+              </span>
+              <span className={step === 2 ? "active" : ""}>2 · Pago</span>
+            </div>
+            {step === 1 ? (
+              <>
+                <p className="eyebrow">FORMULARIO DE PARTICIPACIÓN</p>
+                <h2 id="modalTitle">Obtén tus tickets</h2>
+                <p>Más tickets significan más oportunidades de ganar.</p>
+                <form onSubmit={continuar}>
+                  <label>
+                    Nombre y apellidos
+                    <input
+                      value={nombre}
+                      onChange={(e) => setNombre(e.target.value)}
+                      required
+                      minLength={3}
+                      placeholder="Escribe tu nombre completo"
+                    />
+                  </label>
+                  <div className="row">
+                    <label>
+                      Número de DNI
+                      <input
+                        value={dni}
+                        onChange={(e) => setDni(e.target.value)}
+                        required
+                        inputMode="numeric"
+                        pattern="[0-9]{8}"
+                        maxLength={8}
+                        placeholder="Ingresa tus 8 dígitos"
+                      />
+                    </label>
+                    <label>
+                      Número de WhatsApp
+                      <input
+                        value={celular}
+                        onChange={(e) => setCelular(e.target.value)}
+                        required
+                        inputMode="tel"
+                        pattern="[0-9]{9}"
+                        maxLength={9}
+                        placeholder="987654321"
+                      />
+                    </label>
+                  </div>
+                  <label>
+                    Cantidad de tickets
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      value={cantidad}
+                      onChange={(e) =>
+                        setCantidad(Math.max(1, Number(e.target.value)))
+                      }
+                    />
+                  </label>
+                  <div className="total">
+                    <span>Total a pagar</span>
+                    <strong>S/{cantidad * precio}</strong>
+                  </div>
+                  <button className="primary submit">
+                    CONTINUAR AL PAGO →
+                  </button>
+                  <small className="protected">
+                    🔒 Tus datos están protegidos.
+                  </small>
+                </form>
+              </>
+            ) : (
+              <>
+                <p className="eyebrow">PAGO CON YAPE</p>
+                <h2 id="modalTitle">Paga S/{cantidad * precio}</h2>
+                <div className="modalPay">
+                  <img
+                    src="/yape-chicken-huerta.jpg"
+                    alt="Código QR oficial de Yape"
+                  />
+                  <div>
+                    <b>{titular}</b>
+                    {yape && (
+                      <strong className="yapeNumber">Yape: {yape}</strong>
+                    )}
+                    <p>
+                      Escanea el QR y paga el monto exacto. Luego adjunta tu
+                      comprobante.
+                    </p>
+                    <button
+                      className="backBtn"
+                      type="button"
+                      onClick={() => {
+                        setStep(1);
+                        setResult(null);
+                      }}
+                    >
+                      ← Corregir datos
+                    </button>
+                  </div>
+                </div>
+                <form onSubmit={registrar}>
+                  <label>
+                    N.º de operación
+                    <input
+                      name="operacion"
+                      required
+                      placeholder="Código único de Yape"
+                    />
+                  </label>
+                  <label>
+                    Comprobante de pago
+                    <input
+                      className="fileInput"
+                      type="file"
+                      name="comprobante"
+                      accept="image/jpeg,image/png,image/webp,application/pdf"
+                      required
+                    />
+                    <small>Foto o PDF, máximo 5 MB.</small>
+                  </label>
+                  <label className="check">
+                    <input type="checkbox" required /> Confirmo que el pago es verdadero y acepto las <a href="/bases-legales" target="_blank">bases legales</a> y el <a href="/privacidad" target="_blank">aviso de privacidad</a>. Si no es válido, mis tickets serán anulados.
+                  </label>
+                  <button className="primary submit" disabled={loading}>
+                    {loading
+                      ? "Generando tickets..."
+                      : "ADJUNTAR Y OBTENER TICKETS"}
+                  </button>
+                  {result && (
+                    <div className={result.ok ? "success" : "error"}>
+                      {result.ok ? (
+                        <>
+                          <b>¡Tus tickets ya fueron generados!</b>
+                          <p>{result.tickets?.join(", ")}</p>
+                          <small>
+                            Estado: pendiente de revisión. Guarda estos códigos.
+                          </small>
+                          <div className="ticketActions">
+                            <button type="button" onClick={copiar}>
+                              Copiar
+                            </button>
+                            <button type="button" onClick={descargar}>
+                              Descargar
+                            </button>
+                            <button type="button" onClick={compartir}>
+                              Enviar por WhatsApp
+                            </button>
+                            <button type="button" onClick={imprimir}>
+                              Imprimir tickets
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        result.message
+                      )}
+                    </div>
+                  )}
+                </form>
+              </>
+            )}
+          </section>
+        </div>
+      )}
+    </main>
+  );
 }

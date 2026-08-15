@@ -1,0 +1,12 @@
+/* eslint-disable @next/next/no-html-link-for-pages */
+export default function Privacidad() {
+  return <main className="legalPage"><a href="/">← Volver al sorteo</a><p className="eyebrow">PROTECCIÓN DE DATOS</p><h1>Aviso de privacidad</h1><p className="legalUpdated">Última actualización: 15 de agosto de 2026</p>
+    <section><h2>Responsable</h2><p>Chicken Huerta es responsable del tratamiento de los datos recogidos en sorteo.chicken.huertadigital.net.pe. Las solicitudes se reciben mediante el número oficial mostrado en el proceso de pago.</p></section>
+    <section><h2>Datos y finalidad</h2><p>Tratamos nombre, DNI, celular/WhatsApp, código y comprobante de pago, tickets, estado, fecha y registros de administración para identificar participantes, verificar pagos, evitar fraude, administrar el sorteo, seleccionar y contactar ganadores, entregar premios, atender reclamos y demostrar la transparencia del proceso.</p></section>
+    <section><h2>Base y consentimiento</h2><p>El tratamiento necesario para participar se realiza con el consentimiento informado que otorgas al enviar el formulario y para ejecutar tu participación. No utilizaremos los datos para publicidad ajena al sorteo sin un consentimiento separado.</p></section>
+    <section><h2>Destinatarios y publicación</h2><p>No vendemos tus datos. Podrán acceder proveedores tecnológicos indispensables bajo deberes de seguridad y autoridades cuando la ley lo exija. Si ganas, se publicarán tu nombre y código de ticket; el DNI público se mantendrá oculto o enmascarado.</p></section>
+    <section><h2>Conservación y seguridad</h2><p>Conservaremos los datos durante la vigencia, validación, entrega y el plazo necesario para reclamos u obligaciones legales; después se eliminarán o anonimizarán. Aplicamos acceso administrativo restringido, validaciones y trazabilidad.</p></section>
+    <section><h2>Tus derechos</h2><p>Puedes solicitar información, acceso, actualización, rectificación, cancelación o supresión, oposición y revocación del consentimiento por el canal oficial, identificándote adecuadamente. También puedes acudir ante la Autoridad Nacional de Protección de Datos Personales.</p></section>
+    <section><h2>Transferencias y cambios</h2><p>La infraestructura tecnológica puede procesar datos fuera del Perú con medidas de protección apropiadas. Los cambios materiales se publicarán aquí con su fecha de actualización.</p></section>
+  </main>;
+}

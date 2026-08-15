@@ -15,6 +15,62 @@
       "when": 1786771171995,
       "tag": "0001_oval_spectrum",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1786778313530,
+      "tag": "0002_careless_lord_hawal",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1786779291923,
+      "tag": "0003_fine_sauron",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1786813227423,
+      "tag": "0004_dusty_dragon_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1786813239904,
+      "tag": "0005_regular_demogoblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1786814000000,
+      "tag": "0006_clear_test_data",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1786817600000,
+      "tag": "0007_official_config_and_login_security",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1786819000000,
+      "tag": "0008_official_draw_dates",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1786820400000,
+      "tag": "0009_reset_for_fresh_test",
+      "breakpoints": true
     }
   ]
 }

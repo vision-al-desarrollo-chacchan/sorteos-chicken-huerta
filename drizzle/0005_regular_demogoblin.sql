@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `participantes_operacion_unique` ON `participantes` (`operacion`);
