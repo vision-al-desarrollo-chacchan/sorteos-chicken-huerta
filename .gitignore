@@ -20,6 +20,7 @@
 # misc
 .DS_Store
 *.pem
+.vinext/
 
 # debug
 npm-debug.log*

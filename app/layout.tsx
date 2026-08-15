@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Sorteos Chicken Huerta",
-  description: "Compra tickets oficiales de Chicken Huerta por S/5 y participa por ambos premios.",
+  description: "Compra tickets oficiales de Chicken Huerta por S/5 y participa por una Rezzio Kratos Pro 4.0 y una Tekken 250 Pro.",
   other: {
     "codex-preview": "development",
   },
