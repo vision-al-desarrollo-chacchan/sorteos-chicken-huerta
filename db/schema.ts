@@ -1,0 +1,3 @@
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+export const participantes = sqliteTable("participantes", { id: integer("id").primaryKey({ autoIncrement: true }), nombre: text("nombre").notNull(), dni: text("dni").notNull(), celular: text("celular").notNull(), operacion: text("operacion").notNull(), estado: text("estado").notNull().default("pendiente"), creado: text("creado").notNull() });
+export const tickets = sqliteTable("tickets", { id: integer("id").primaryKey({ autoIncrement: true }), codigo: text("codigo").notNull().unique(), participanteId: integer("participante_id").notNull(), creado: text("creado").notNull() });
