@@ -1,3 +1,5 @@
+import { rest } from "@/lib/supabase-server";
+
 const encoder = new TextEncoder();
 function bytesToHex(bytes: ArrayBuffer) {
   return Array.from(new Uint8Array(bytes), (b) =>
@@ -31,14 +33,8 @@ async function envs() {
   };
 }
 async function storedCredential() {
-  const { DB } = await envs();
-  await DB.prepare(
-    "CREATE TABLE IF NOT EXISTS configuracion(clave TEXT PRIMARY KEY,valor TEXT NOT NULL,actualizado TEXT NOT NULL)",
-  ).run();
-  const rows = await DB.prepare(
-    "SELECT clave,valor FROM configuracion WHERE clave IN ('admin_password_hash','admin_password_version')",
-  ).all<{ clave: string; valor: string }>();
-  const d = Object.fromEntries(rows.results.map((x) => [x.clave, x.valor]));
+  const rows = await rest<Array<{ clave: string; valor: string }>>("configuracion", "select=clave,valor&clave=in.(admin_password_hash,admin_password_version)");
+  const d = Object.fromEntries(rows.map((x) => [x.clave, x.valor]));
   return {
     hash: d.admin_password_hash || "",
     version: d.admin_password_version || "env",
@@ -105,19 +101,14 @@ export async function changePassword(current: string, next: string) {
       message:
         "La nueva contraseña debe tener 12 caracteres, mayúscula, minúscula, número y símbolo.",
     };
-  const { DB } = await envs(),
-    salt = crypto.randomUUID().replaceAll("-", ""),
+  const salt = crypto.randomUUID().replaceAll("-", ""),
     hash = await passwordHash(next, salt),
     version = crypto.randomUUID(),
     now = new Date().toISOString();
-  await DB.batch([
-    DB.prepare(
-      "INSERT INTO configuracion(clave,valor,actualizado) VALUES('admin_password_hash',?,?) ON CONFLICT(clave) DO UPDATE SET valor=excluded.valor,actualizado=excluded.actualizado",
-    ).bind(`${salt}:${hash}`, now),
-    DB.prepare(
-      "INSERT INTO configuracion(clave,valor,actualizado) VALUES('admin_password_version',?,?) ON CONFLICT(clave) DO UPDATE SET valor=excluded.valor,actualizado=excluded.actualizado",
-    ).bind(version, now),
-  ]);
+  await rest("configuracion", "on_conflict=clave", { method: "POST", headers: { Prefer: "resolution=merge-duplicates" }, body: JSON.stringify([
+    { clave: "admin_password_hash", valor: `${salt}:${hash}`, actualizado: now },
+    { clave: "admin_password_version", valor: version, actualizado: now },
+  ]) });
   return { ok: true };
 }
 export async function sessionCookie() {

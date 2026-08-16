@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sorteos-chicken-huerta",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-08-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": true,
+  "assets": {
+    "directory": "dist/client",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "vars": {
+    "SUPABASE_URL": "https://cfjrpmqwxthnqosqpoyc.supabase.co"
+  },
+  "routes": [{ "pattern": "sorteo.chicken.huertadigital.net.pe", "custom_domain": true }],
+  "observability": { "enabled": true, "head_sampling_rate": 1 }
+}
