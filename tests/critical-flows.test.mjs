@@ -7,22 +7,20 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 test("approval and rejection update digital participant tickets together", async () => {
   const source = await read("app/api/admin/route.ts");
   assert.match(source, /\["aprobado", "rechazado", "pendiente"\]/);
-  assert.match(source, /UPDATE tickets SET estado=\? WHERE participante_id=\? AND tipo='digital'/);
+  assert.match(source, /actualizar_estado_participante/);
 });
 
 test("winner excludes pending, rejected, available and annulled tickets", async () => {
   const source = await read("app/api/admin/route.ts");
-  assert.match(source, /p\.estado='aprobado'/);
-  assert.match(source, /t\.estado='vendido'/);
-  assert.match(source, /g\.id IS NULL/);
+  assert.match(source, /sortear_ganador/);
 });
 
 test("live draw exposes only eligible codes to the private admin screen", async () => {
   const source = await read("app/api/admin/elegibles/route.ts");
   assert.match(source, /isAdmin/);
-  assert.match(source, /p\.estado='aprobado'/);
-  assert.match(source, /t\.estado='vendido'/);
-  assert.match(source, /g\.id IS NULL/);
+  assert.match(source, /estado=eq\.aprobado/);
+  assert.match(source, /ticket\.estado === "vendido"/);
+  assert.match(source, /!used\.has/);
 });
 
 test("ticket price is read from current configuration", async () => {

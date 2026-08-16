@@ -1,30 +1,12 @@
 import { isAdmin } from "../../../admin-auth";
-async function envs() {
-  const { env } = await import("cloudflare:workers");
-  return env as typeof env;
-}
+import { rest } from "@/lib/supabase-server";
 function email() {
   return "administrador";
 }
-async function setup(db: D1Database) {
-  await db.batch([
-    db.prepare(
-      "CREATE TABLE IF NOT EXISTS configuracion(clave TEXT PRIMARY KEY,valor TEXT NOT NULL,actualizado TEXT NOT NULL)",
-    ),
-    db.prepare(
-      "CREATE TABLE IF NOT EXISTS auditoria(id INTEGER PRIMARY KEY AUTOINCREMENT,accion TEXT NOT NULL,detalle TEXT NOT NULL,administrador TEXT NOT NULL,creado TEXT NOT NULL)",
-    ),
-  ]);
-}
 export async function GET(r: Request) {
-  const { DB } = await envs();
   if (!(await isAdmin(r))) return Response.json({ ok: false }, { status: 401 });
-  await setup(DB);
-  const rows = await DB.prepare("SELECT clave,valor FROM configuracion").all<{
-      clave: string;
-      valor: string;
-    }>(),
-    d = Object.fromEntries(rows.results.map((x) => [x.clave, x.valor]));
+  const rows = await rest<Array<{ clave: string; valor: string }>>("configuracion", "select=clave,valor"),
+    d = Object.fromEntries(rows.map((x) => [x.clave, x.valor]));
   return Response.json({
     ok: true,
     inicio: d.inicio_sorteo || "",
@@ -40,7 +22,6 @@ export async function GET(r: Request) {
   });
 }
 export async function PUT(r: Request) {
-  const { DB } = await envs();
   if (!(await isAdmin(r))) return Response.json({ ok: false }, { status: 401 });
   const { inicio, fin, yape, titular, precio, premio1, premio2, imagen1, imagen2, condiciones } = (await r.json()) as {
     inicio?: string;
@@ -62,7 +43,6 @@ export async function PUT(r: Request) {
       { ok: false, message: "Revisa las fechas y los datos de Yape." },
       { status: 400 },
     );
-  await setup(DB);
   const now = new Date().toISOString(),
     values = [
       ["inicio_sorteo", inicio],
@@ -76,15 +56,7 @@ export async function PUT(r: Request) {
       ["imagen_2", (imagen2 || "/tekken-250-pro.png").trim()],
       ["condiciones", condiciones!.trim()],
     ];
-  await DB.batch([
-    ...values.map(([k, v]) =>
-      DB.prepare(
-        "INSERT INTO configuracion(clave,valor,actualizado) VALUES(?,?,?) ON CONFLICT(clave) DO UPDATE SET valor=excluded.valor,actualizado=excluded.actualizado",
-      ).bind(k, v, now),
-    ),
-    DB.prepare(
-      "INSERT INTO auditoria(accion,detalle,administrador,creado) VALUES('CONFIGURACION',?,?,?)",
-    ).bind(`Fechas ${inicio} a ${fin}; Yape ${yape}`, email(), now),
-  ]);
+  await rest("configuracion", "on_conflict=clave", { method: "POST", headers: { Prefer: "resolution=merge-duplicates" }, body: JSON.stringify(values.map(([clave, valor]) => ({ clave, valor, actualizado: now }))) });
+  await rest("auditoria", "", { method: "POST", body: JSON.stringify({ accion: "CONFIGURACION", detalle: `Fechas ${inicio} a ${fin}; Yape ${yape}`, administrador: email(), creado: now }) });
   return Response.json({ ok: true });
 }
