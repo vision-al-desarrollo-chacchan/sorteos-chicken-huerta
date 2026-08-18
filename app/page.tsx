@@ -2,6 +2,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import SorteoInfo from "./SorteoInfo";
 type TicketResult = { ok: boolean; tickets?: string[]; message?: string };
+type MetodoPago = { id: "yape" | "plin"; nombre: string; numero: string; titular: string; maximo: number; qr: string };
 export default function Home() {
   const [cantidad, setCantidad] = useState(1),
     [loading, setLoading] = useState(false),
@@ -16,11 +17,13 @@ export default function Home() {
     [celular, setCelular] = useState(""),
     [yape, setYape] = useState(""),
     [titular, setTitular] = useState("Elvis Esteban Infantes Huerta"),
+    [metodosPago, setMetodosPago] = useState<MetodoPago[]>([]),
+    [metodoId, setMetodoId] = useState<"yape" | "plin">("yape"),
     [precio, setPrecio] = useState(5),
     [premio1, setPremio1] = useState("Rezzio Kratos Pro 4.0"),
-    [premio2, setPremio2] = useState("Tekken 250 Pro"),
+    [premio2, setPremio2] = useState("Tekken Rezzio 300"),
     [imagen1, setImagen1] = useState("/kratos-pro.png"),
-    [imagen2, setImagen2] = useState("/tekken-250-pro.png"),
+    [imagen2, setImagen2] = useState("/tekken-rezzio-300.png"),
     [condiciones, setCondiciones] = useState("Cada ticket aprobado participa por ambos premios.");
   useEffect(() => {
     const close = (e: KeyboardEvent) => {
@@ -35,9 +38,12 @@ export default function Home() {
       .then((d) => {
         setYape(d.yape || "");
         setTitular(d.titular || "Elvis Esteban Infantes Huerta");
+        const metodos = (d.metodosPago || []) as MetodoPago[];
+        setMetodosPago(metodos);
+        if (metodos[0]) setMetodoId(metodos[0].id);
         setPrecio(d.precio || 5); setPremio1(d.premio1 || "Rezzio Kratos Pro 4.0");
-        setPremio2(d.premio2 || "Tekken 250 Pro"); setImagen1(d.imagen1 || "/kratos-pro.png");
-        setImagen2(d.imagen2 || "/tekken-250-pro.png"); setCondiciones(d.condiciones || "");
+        setPremio2(d.premio2 || "Tekken Rezzio 300"); setImagen1(d.imagen1 || "/kratos-pro.png");
+        setImagen2(d.imagen2 || "/tekken-rezzio-300.png"); setCondiciones(d.condiciones || "");
       })
       .catch(() => {});
   }, []);
@@ -45,12 +51,16 @@ export default function Home() {
     setOpen(true);
     setStep(1);
     setResult(null);
+    const disponible = metodosPago.find((m) => cantidad * precio <= m.maximo);
+    if (disponible) setMetodoId(disponible.id);
   }
   function cerrar() {
     if (!loading) setOpen(false);
   }
   function continuar(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!metodoSeleccionado) return;
+    setMetodoId(metodoSeleccionado.id);
     setStep(2);
   }
   async function registrar(e: FormEvent<HTMLFormElement>) {
@@ -62,6 +72,7 @@ export default function Home() {
     form.set("nombre", nombre);
     form.set("dni", dni);
     form.set("celular", celular);
+    form.set("metodo", metodoId);
     try {
       const r = await fetch("/api/participantes", {
         method: "POST",
@@ -120,6 +131,9 @@ export default function Home() {
     w.document.close();
     w.print();
   }
+  const total = cantidad * precio;
+  const metodosDisponibles = metodosPago.filter((m) => total <= m.maximo);
+  const metodoSeleccionado = metodosDisponibles.find((m) => m.id === metodoId) || metodosDisponibles[0];
   return (
     <main>
       <header className="nav">
@@ -198,7 +212,7 @@ export default function Home() {
         <article>
           <b>02</b>
           <div>
-            <strong>Paga por Yape</strong>
+            <strong>Paga por Yape o Plin</strong>
             <span>Después aparecerá el QR y el total exacto.</span>
           </div>
         </article>
@@ -216,7 +230,7 @@ export default function Home() {
         <p className="eyebrow">PARTICIPA AHORA</p>
         <h2>¿Listo para ganar?</h2>
         <p>
-          Llena tus datos, paga con Yape y recibe tus tickets en pocos pasos.
+          Llena tus datos, paga con Yape o Plin y recibe tus tickets en pocos pasos.
         </p>
         <button className="primary" onClick={abrir}>
           COMPRAR TICKETS →
@@ -375,9 +389,12 @@ export default function Home() {
                   </label>
                   <div className="total">
                     <span>Total a pagar</span>
-                    <strong>S/{cantidad * precio}</strong>
+                    <strong>S/{total}</strong>
                   </div>
-                  <button className="primary submit">
+                  {metodosDisponibles.length > 0 ? <div className="paymentMethods" aria-label="Métodos de pago disponibles">
+                    {metodosDisponibles.map((m) => <button type="button" key={m.id} className={metodoId === m.id ? "active" : ""} onClick={() => setMetodoId(m.id)}>Pagar con {m.nombre}</button>)}
+                  </div> : <p className="paymentLimit">El monto supera el límite de los métodos disponibles. Reduce la cantidad de tickets.</p>}
+                  <button className="primary submit" disabled={!metodoSeleccionado}>
                     CONTINUAR AL PAGO →
                   </button>
                   <small className="protected">
@@ -387,17 +404,17 @@ export default function Home() {
               </>
             ) : (
               <>
-                <p className="eyebrow">PAGO CON YAPE</p>
-                <h2 id="modalTitle">Paga S/{cantidad * precio}</h2>
+                <p className="eyebrow">PAGO CON {metodoSeleccionado?.nombre.toUpperCase()}</p>
+                <h2 id="modalTitle">Paga S/{total}</h2>
                 <div className="modalPay">
                   <img
-                    src="/yape-chicken-huerta.jpg"
-                    alt="Código QR oficial de Yape"
+                    src={metodoSeleccionado?.qr}
+                    alt={`Código QR oficial de ${metodoSeleccionado?.nombre}`}
                   />
                   <div>
-                    <b>{titular}</b>
-                    {yape && (
-                      <strong className="yapeNumber">Yape: {yape}</strong>
+                    <b>{metodoSeleccionado?.titular}</b>
+                    {metodoSeleccionado?.numero && (
+                      <strong className="yapeNumber">{metodoSeleccionado.nombre}: {metodoSeleccionado.numero}</strong>
                     )}
                     <p>
                       Escanea el QR y paga el monto exacto. Luego adjunta tu
@@ -421,7 +438,7 @@ export default function Home() {
                     <input
                       name="operacion"
                       required
-                      placeholder="Código único de Yape"
+                      placeholder={`Código único de ${metodoSeleccionado?.nombre}`}
                     />
                   </label>
                   <label>
