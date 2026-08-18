@@ -154,7 +154,7 @@ export default function Fisicos() {
                 <div><small>SORTEO OFICIAL</small><b>CHICKEN HUERTA</b></div>
                 <span><small>PRECIO</small>S/{sorteo.precio || 5}</span>
               </div>
-              <div className="ticketPrize"><small>UN TICKET PARTICIPA POR AMBOS PREMIOS</small><h2>¡PARTICIPA POR UNO DE LOS 2 PREMIOS!</h2><p>1.er premio: {sorteo.premio1 || "Rezzio Kratos Pro 4.0"} · 2.º premio: {sorteo.premio2 || "Tekken 250 Pro"}</p></div>
+              <div className="ticketPrize"><small>UN TICKET PARTICIPA POR AMBOS PREMIOS</small><h2>¡PARTICIPA POR UNO DE LOS 2 PREMIOS!</h2><p>1.er premio: {sorteo.premio1 || "Rezzio Kratos Pro 4.0"} · 2.º premio: {sorteo.premio2 || "Tekken Rezzio 300"}</p></div>
               <div className="officialSeal"><span>TICKET OFICIAL</span><strong className="physicalCode">{t.codigo}</strong><small>ÚNICO · NO TRANSFERIBLE DESPUÉS DE REGISTRAR LA VENTA</small></div>
               <div className="ticketDates"><span><b>INICIO</b>{fecha(sorteo.inicio)}</span><span><b>CIERRE</b>{fecha(sorteo.fin)}</span></div>
               <small className="ticketLegal">Código único. Participa solo si está vendido y registrado. Consulta estado y bases en sorteo.chicken.huertadigital.net.pe</small>

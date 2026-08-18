@@ -19,5 +19,7 @@ export async function GET() {
     { id: "yape", nombre: "Yape", activo: d.yape_activo !== "false", numero: d.yape_numero || "", titular: d.yape_titular || "", maximo: Number(d.yape_maximo || 500), qr: d.yape_qr || "/yape-chicken-huerta.jpg" },
     { id: "plin", nombre: "Plin", activo: d.plin_activo === "true", numero: d.plin_numero || "", titular: d.plin_titular || "", maximo: Number(d.plin_maximo || 500), qr: d.plin_qr || "" },
   ].filter((m) => m.activo && m.numero && m.qr);
-  return Response.json({ inicio, fin, estado, yape: d.yape_numero || null, titular: d.yape_titular || null, metodosPago, precio: Number(d.precio_ticket || 5), premio1: d.premio_1 || "Rezzio Kratos Pro 4.0", premio2: d.premio_2 || "Tekken 250 Pro", imagen1: d.imagen_1 || "/kratos-pro.png", imagen2: d.imagen_2 || "/tekken-250-pro.png", condiciones: d.condiciones || "Cada ticket aprobado participa por ambos premios.", ganadores }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } });
+  const premio2 = !d.premio_2 || d.premio_2 === "Tekken 250 Pro" ? "Tekken Rezzio 300" : d.premio_2;
+  const imagen2 = !d.imagen_2 || d.imagen_2 === "/tekken-250-pro.png" ? "/tekken-rezzio-300.png" : d.imagen_2;
+  return Response.json({ inicio, fin, estado, yape: d.yape_numero || null, titular: d.yape_titular || null, metodosPago, precio: Number(d.precio_ticket || 5), premio1: d.premio_1 || "Rezzio Kratos Pro 4.0", premio2, imagen1: d.imagen_1 || "/kratos-pro.png", imagen2, condiciones: d.condiciones || "Cada ticket aprobado participa por ambos premios.", ganadores }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } });
 }

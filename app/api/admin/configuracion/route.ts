@@ -23,9 +23,9 @@ export async function GET(r: Request) {
     plinQr: d.plin_qr || "",
     precio: Number(d.precio_ticket || 5),
     premio1: d.premio_1 || "Rezzio Kratos Pro 4.0",
-    premio2: d.premio_2 || "Tekken 250 Pro",
+    premio2: !d.premio_2 || d.premio_2 === "Tekken 250 Pro" ? "Tekken Rezzio 300" : d.premio_2,
     imagen1: d.imagen_1 || "/kratos-pro.png",
-    imagen2: d.imagen_2 || "/tekken-250-pro.png",
+    imagen2: !d.imagen_2 || d.imagen_2 === "/tekken-250-pro.png" ? "/tekken-rezzio-300.png" : d.imagen_2,
     condiciones: d.condiciones || "Cada ticket aprobado participa por ambos premios.",
   });
 }
@@ -73,7 +73,7 @@ export async function PUT(r: Request) {
       ["premio_1", premio1!.trim()],
       ["premio_2", premio2!.trim()],
       ["imagen_1", (imagen1 || "/kratos-pro.png").trim()],
-      ["imagen_2", (imagen2 || "/tekken-250-pro.png").trim()],
+      ["imagen_2", (imagen2 || "/tekken-rezzio-300.png").trim()],
       ["condiciones", condiciones!.trim()],
     ];
   await rest("configuracion", "on_conflict=clave", { method: "POST", headers: { Prefer: "resolution=merge-duplicates" }, body: JSON.stringify(values.map(([clave, valor]) => ({ clave, valor, actualizado: now }))) });
