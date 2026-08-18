@@ -112,3 +112,5 @@ The timeout defaults can be overridden for a controlled canary with `SITES_INSTA
 <!-- Ruta pública de verificación de Google habilitada. -->
 
 <!-- Verificación atendida directamente por el Worker. -->
+
+<!-- Verificación HTML de Google Search Console configurada. -->
