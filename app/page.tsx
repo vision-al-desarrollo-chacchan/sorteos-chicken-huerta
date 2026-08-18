@@ -21,7 +21,7 @@ export default function Home() {
     [metodoId, setMetodoId] = useState<"yape" | "plin">("yape"),
     [precio, setPrecio] = useState(5),
     [premio1, setPremio1] = useState("Rezzio Kratos Pro 4.0"),
-    [premio2, setPremio2] = useState("Tekken Rezzio 300"),
+    [premio2, setPremio2] = useState("Tekken 300"),
     [imagen1, setImagen1] = useState("/kratos-pro.png"),
     [imagen2, setImagen2] = useState("/tekken-rezzio-300.png"),
     [condiciones, setCondiciones] = useState("Cada ticket aprobado participa por ambos premios.");
@@ -42,7 +42,7 @@ export default function Home() {
         setMetodosPago(metodos);
         if (metodos[0]) setMetodoId(metodos[0].id);
         setPrecio(d.precio || 5); setPremio1(d.premio1 || "Rezzio Kratos Pro 4.0");
-        setPremio2(d.premio2 || "Tekken Rezzio 300"); setImagen1(d.imagen1 || "/kratos-pro.png");
+        setPremio2(d.premio2 || "Tekken 300"); setImagen1(d.imagen1 || "/kratos-pro.png");
         setImagen2(d.imagen2 || "/tekken-rezzio-300.png"); setCondiciones(d.condiciones || "");
       })
       .catch(() => {});

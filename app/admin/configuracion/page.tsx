@@ -15,7 +15,7 @@ export default function Config() {
     [plinQr, setPlinQr] = useState(""),
     [precio, setPrecio] = useState(5),
     [premio1, setPremio1] = useState("Rezzio Kratos Pro 4.0"),
-    [premio2, setPremio2] = useState("Tekken Rezzio 300"),
+    [premio2, setPremio2] = useState("Tekken 300"),
     [imagen1, setImagen1] = useState("/kratos-pro.png"),
     [imagen2, setImagen2] = useState("/tekken-rezzio-300.png"),
     [condiciones, setCondiciones] = useState("Cada ticket aprobado participa por ambos premios."),
