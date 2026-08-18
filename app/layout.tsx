@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Sorteos Chicken Huerta",
   description: "Participa en los sorteos oficiales de Chicken Huerta. Consulta premios, precio, fechas, bases y estado de tus tickets.",
+  verification: {
+    google: "dU57nJ_Tv3YoPCjTpSrsFmRPDIp5jNw16hoDysgcq8A",
+  },
   other: {
     "codex-preview": "development",
   },
