@@ -5,6 +5,14 @@ export default function Config() {
     [fin, setFin] = useState(""),
     [yape, setYape] = useState(""),
     [titular, setTitular] = useState("Elvis Esteban Infantes Huerta"),
+    [yapeActivo, setYapeActivo] = useState(true),
+    [yapeMaximo, setYapeMaximo] = useState(500),
+    [yapeQr, setYapeQr] = useState("/yape-chicken-huerta.jpg"),
+    [plin, setPlin] = useState(""),
+    [plinTitular, setPlinTitular] = useState(""),
+    [plinActivo, setPlinActivo] = useState(false),
+    [plinMaximo, setPlinMaximo] = useState(500),
+    [plinQr, setPlinQr] = useState(""),
     [precio, setPrecio] = useState(5),
     [premio1, setPremio1] = useState("Rezzio Kratos Pro 4.0"),
     [premio2, setPremio2] = useState("Tekken 250 Pro"),
@@ -21,6 +29,8 @@ export default function Config() {
         setFin(d.fin || "");
         setYape(d.yape || "");
         setTitular(d.titular || "");
+        setYapeActivo(d.yapeActivo !== false); setYapeMaximo(d.yapeMaximo || 500); setYapeQr(d.yapeQr || "/yape-chicken-huerta.jpg");
+        setPlin(d.plin || ""); setPlinTitular(d.plinTitular || ""); setPlinActivo(Boolean(d.plinActivo)); setPlinMaximo(d.plinMaximo || 500); setPlinQr(d.plinQr || "");
         setPrecio(d.precio || 5); setPremio1(d.premio1 || ""); setPremio2(d.premio2 || "");
         setImagen1(d.imagen1 || "/kratos-pro.png"); setImagen2(d.imagen2 || "/tekken-250-pro.png");
         setCondiciones(d.condiciones || "");
@@ -33,7 +43,7 @@ export default function Config() {
     const r = await fetch("/api/admin/configuracion", {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ inicio, fin, yape, titular, precio, premio1, premio2, imagen1, imagen2, condiciones }),
+        body: JSON.stringify({ inicio, fin, yape, titular, yapeActivo, yapeMaximo, yapeQr, plin, plinTitular, plinActivo, plinMaximo, plinQr, precio, premio1, premio2, imagen1, imagen2, condiciones }),
       }),
       d = await r.json();
     setMsg(
@@ -41,6 +51,16 @@ export default function Config() {
         ? "Configuración actualizada y publicada."
         : d.message || "No se pudo guardar.",
     );
+  }
+  function cargarQr(file: File | undefined, setter: (value: string) => void) {
+    if (!file) return;
+    if (!file.type.startsWith("image/") || file.size > 1_000_000) {
+      setMsg("El QR debe ser una imagen JPG, PNG o WebP de máximo 1 MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setter(String(reader.result || ""));
+    reader.readAsDataURL(file);
   }
   async function cambiarClave(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -65,7 +85,7 @@ export default function Config() {
         <div>
           <p className="eyebrow">CHICKEN HUERTA</p>
           <h1>Configuración del sorteo</h1>
-          <p>Controla fechas, precio, premios, imágenes y condiciones.</p>
+          <p>Controla fechas, premios y los cobros por Yape o Plin.</p>
         </div>
         <a href="/admin">Volver al panel</a>
       </header>
@@ -97,29 +117,26 @@ export default function Config() {
             required
           />
         </label>
-        <label>
-          Número oficial de Yape
-          <input
-            value={yape}
-            onChange={(e) =>
-              setYape(e.target.value.replace(/\D/g, "").slice(0, 9))
-            }
-            inputMode="numeric"
-            pattern="9[0-9]{8}"
-            placeholder="9 dígitos"
-            required
-          />
-        </label>
-        <label>
-          Titular de Yape
-          <input
-            value={titular}
-            onChange={(e) => setTitular(e.target.value)}
-            minLength={3}
-            maxLength={100}
-            required
-          />
-        </label>
+        <section className="paymentConfig">
+          <div className="paymentConfigHead"><div><p className="eyebrow">MÉTODOS DE PAGO</p><h2>Yape</h2></div><label className="methodSwitch"><input type="checkbox" checked={yapeActivo} onChange={(e) => setYapeActivo(e.target.checked)} /> {yapeActivo ? "Activo" : "Desactivado"}</label></div>
+          <div className="configGrid">
+            <label>Número oficial de Yape<input value={yape} onChange={(e) => setYape(e.target.value.replace(/\D/g, "").slice(0, 9))} inputMode="numeric" pattern="9[0-9]{8}" placeholder="9 dígitos" required={yapeActivo} disabled={!yapeActivo} /></label>
+            <label>Titular de Yape<input value={titular} onChange={(e) => setTitular(e.target.value)} minLength={3} maxLength={100} required={yapeActivo} disabled={!yapeActivo} /></label>
+            <label>Monto máximo por compra (S/)<input type="number" min={1} step="0.01" value={yapeMaximo} onChange={(e) => setYapeMaximo(Number(e.target.value))} required={yapeActivo} disabled={!yapeActivo} /><small>Yape solo aparecerá si el total no supera este monto.</small></label>
+            <label>Imagen QR de Yape<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => cargarQr(e.target.files?.[0], setYapeQr)} disabled={!yapeActivo} /></label>
+          </div>
+          {yapeQr && <img className="qrPreview" src={yapeQr} alt="Vista previa del QR de Yape" />}
+        </section>
+        <section className="paymentConfig plinConfig">
+          <div className="paymentConfigHead"><div><p className="eyebrow">MÉTODOS DE PAGO</p><h2>Plin</h2></div><label className="methodSwitch"><input type="checkbox" checked={plinActivo} onChange={(e) => setPlinActivo(e.target.checked)} /> {plinActivo ? "Activo" : "Desactivado"}</label></div>
+          <div className="configGrid">
+            <label>Número oficial de Plin<input value={plin} onChange={(e) => setPlin(e.target.value.replace(/\D/g, "").slice(0, 9))} inputMode="numeric" pattern="9[0-9]{8}" placeholder="9 dígitos" required={plinActivo} disabled={!plinActivo} /></label>
+            <label>Titular de Plin<input value={plinTitular} onChange={(e) => setPlinTitular(e.target.value)} minLength={3} maxLength={100} required={plinActivo} disabled={!plinActivo} /></label>
+            <label>Monto máximo por compra (S/)<input type="number" min={1} step="0.01" value={plinMaximo} onChange={(e) => setPlinMaximo(Number(e.target.value))} required={plinActivo} disabled={!plinActivo} /><small>Plin solo aparecerá si el total no supera este monto.</small></label>
+            <label>Imagen QR de Plin<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => cargarQr(e.target.files?.[0], setPlinQr)} disabled={!plinActivo} /></label>
+          </div>
+          {plinQr && <img className="qrPreview" src={plinQr} alt="Vista previa del QR de Plin" />}
+        </section>
         <button className="primary">Guardar y publicar</button>
         {msg && (
           <p className={msg.startsWith("Configuración") ? "success" : "error"}>

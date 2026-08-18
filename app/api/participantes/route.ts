@@ -7,7 +7,7 @@ function horaPeru(value: string) {
 export async function POST(request: Request) {
   let receiptPath = "";
   try {
-    const config = await rest<Array<{ clave: string; valor: string }>>("configuracion", "select=clave,valor&clave=in.(inicio_sorteo,fin_sorteo,precio_ticket)");
+    const config = await rest<Array<{ clave: string; valor: string }>>("configuracion", "select=clave,valor&clave=in.(inicio_sorteo,fin_sorteo,precio_ticket,yape_activo,yape_maximo,plin_activo,plin_maximo)");
     const cfg = Object.fromEntries(config.map((row) => [row.clave, row.valor]));
     const now = Date.now();
     const precio = Math.max(1, Number(cfg.precio_ticket || 5));
@@ -20,18 +20,23 @@ export async function POST(request: Request) {
     const celular = String(form.get("celular") ?? "").trim();
     const operacion = String(form.get("operacion") ?? "").trim();
     const cantidad = Number(form.get("cantidad"));
+    const metodo = String(form.get("metodo") ?? "yape").toLowerCase();
     const comprobante = form.get("comprobante");
     const allowed = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
-    if (nombre.length < 3 || nombre.length > 100 || !/^\d{8}$/.test(dni) || !/^9\d{8}$/.test(celular) || !/^[a-zA-Z0-9-]{4,40}$/.test(operacion) || !Number.isInteger(cantidad) || cantidad < 1 || cantidad > 100 || !(comprobante instanceof File) || comprobante.size < 1 || comprobante.size > 5_000_000 || !allowed.includes(comprobante.type)) {
+    const total = cantidad * precio;
+    const activo = metodo === "yape" ? cfg.yape_activo !== "false" : metodo === "plin" ? cfg.plin_activo === "true" : false;
+    const maximo = Number(metodo === "yape" ? cfg.yape_maximo || 500 : cfg.plin_maximo || 500);
+    if (nombre.length < 3 || nombre.length > 100 || !/^\d{8}$/.test(dni) || !/^9\d{8}$/.test(celular) || !/^[a-zA-Z0-9-]{4,40}$/.test(operacion) || !Number.isInteger(cantidad) || cantidad < 1 || cantidad > 100 || !activo || !Number.isFinite(maximo) || total > maximo || !(comprobante instanceof File) || comprobante.size < 1 || comprobante.size > 5_000_000 || !allowed.includes(comprobante.type)) {
       return Response.json({ ok: false, message: "Revisa tus datos. El celular debe comenzar en 9 y el comprobante debe ser válido." }, { status: 400 });
     }
-    const duplicate = await rest<Array<{ id: number }>>("participantes", `select=id&operacion=ilike.${encodeURIComponent(operacion)}&limit=1`);
+    const operacionGuardada = `${metodo.toUpperCase()}-${operacion}`;
+    const duplicate = await rest<Array<{ id: number }>>("participantes", `select=id&operacion=ilike.${encodeURIComponent(operacionGuardada)}&limit=1`);
     if (duplicate.length) return Response.json({ ok: false, message: "Este número de operación ya fue registrado." }, { status: 409 });
 
     const ext = comprobante.name.split(".").pop()?.replace(/[^a-z0-9]/gi, "").toLowerCase() || "bin";
     receiptPath = `${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${ext}`;
     await uploadReceipt(receiptPath, comprobante);
-    const result = await rpc<{ participante_id: number; tickets: string[] }>("registrar_participante", { p_nombre: nombre, p_dni: dni, p_celular: celular, p_operacion: operacion, p_cantidad: cantidad, p_monto: cantidad * precio, p_comprobante_key: receiptPath });
+    const result = await rpc<{ participante_id: number; tickets: string[] }>("registrar_participante", { p_nombre: nombre, p_dni: dni, p_celular: celular, p_operacion: operacionGuardada, p_cantidad: cantidad, p_monto: total, p_comprobante_key: receiptPath });
     return Response.json({ ok: true, tickets: result.tickets });
   } catch {
     if (receiptPath) try { await deleteReceipt(receiptPath); } catch { /* limpieza de mejor esfuerzo */ }
