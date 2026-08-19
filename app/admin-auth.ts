@@ -80,9 +80,12 @@ export async function verifyCredentials(user: string, password: string) {
   const stored = await storedCredential();
   if (stored.hash) {
     const [salt, hash] = stored.hash.split(":");
-    return Boolean(
-      salt && hash && safeEqual(await passwordHash(password, salt), hash),
-    );
+    if (
+      salt &&
+      hash &&
+      safeEqual(await passwordHash(password, salt), hash)
+    )
+      return true;
   }
   return Boolean(ADMIN_PASSWORD && safeEqual(password, ADMIN_PASSWORD));
 }
