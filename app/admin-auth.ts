@@ -76,7 +76,7 @@ export async function isAdmin(request: Request) {
 }
 export async function verifyCredentials(user: string, password: string) {
   const { ADMIN_USER, ADMIN_PASSWORD } = await envs();
-  if (!ADMIN_USER || !safeEqual(user, ADMIN_USER)) return false;
+  if (!safeEqual(user, ADMIN_USER || "administrador")) return false;
   const stored = await storedCredential();
   if (stored.hash) {
     const [salt, hash] = stored.hash.split(":");
