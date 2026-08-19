@@ -24,9 +24,10 @@ export async function POST(request: Request) {
     const comprobante = form.get("comprobante");
     const allowed = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
     const total = cantidad * precio;
-    const activo = metodo === "yape" ? cfg.yape_activo !== "false" : metodo === "plin" ? cfg.plin_activo === "true" : false;
-    const maximo = Number(metodo === "yape" ? cfg.yape_maximo || 500 : cfg.plin_maximo || 500);
-    if (nombre.length < 3 || nombre.length > 100 || !/^\d{8}$/.test(dni) || !/^9\d{8}$/.test(celular) || !/^[a-zA-Z0-9-]{4,40}$/.test(operacion) || !Number.isInteger(cantidad) || cantidad < 1 || cantidad > 100 || !activo || !Number.isFinite(maximo) || total > maximo || !(comprobante instanceof File) || comprobante.size < 1 || comprobante.size > 5_000_000 || !allowed.includes(comprobante.type)) {
+    const metodoValido = ["yape", "plin", "bcp", "interbank"].includes(metodo);
+    const activo = metodo === "yape" ? cfg.yape_activo !== "false" : metodo === "plin" ? cfg.plin_activo === "true" : metodo === "bcp" || metodo === "interbank";
+    const maximo = Number(metodo === "yape" ? cfg.yape_maximo || 500 : metodo === "plin" ? cfg.plin_maximo || 500 : 100000);
+    if (nombre.length < 3 || nombre.length > 100 || !/^\d{8}$/.test(dni) || !/^9\d{8}$/.test(celular) || !/^[a-zA-Z0-9-]{4,40}$/.test(operacion) || !Number.isInteger(cantidad) || cantidad < 1 || cantidad > 100 || !metodoValido || !activo || !Number.isFinite(maximo) || total > maximo || !(comprobante instanceof File) || comprobante.size < 1 || comprobante.size > 5_000_000 || !allowed.includes(comprobante.type)) {
       return Response.json({ ok: false, message: "Revisa tus datos. El celular debe comenzar en 9 y el comprobante debe ser válido." }, { status: 400 });
     }
     const operacionGuardada = `${metodo.toUpperCase()}-${operacion}`;

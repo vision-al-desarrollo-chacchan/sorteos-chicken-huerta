@@ -3,7 +3,7 @@ import { FormEvent, useEffect, useState } from "react";
 export default function Config() {
   const [inicio, setInicio] = useState(""),
     [fin, setFin] = useState(""),
-    [yape, setYape] = useState(""),
+    [yape, setYape] = useState("932476860"),
     [titular, setTitular] = useState("Elvis Esteban Infantes Huerta"),
     [yapeActivo, setYapeActivo] = useState(true),
     [yapeMaximo, setYapeMaximo] = useState(500),
@@ -27,7 +27,7 @@ export default function Config() {
       .then((d) => {
         setInicio(d.inicio || "");
         setFin(d.fin || "");
-        setYape(d.yape || "");
+        setYape(d.yape || "932476860");
         setTitular(d.titular || "");
         setYapeActivo(d.yapeActivo !== false); setYapeMaximo(d.yapeMaximo || 500); setYapeQr(d.yapeQr || "/yape-chicken-huerta.jpg");
         setPlin(d.plin || ""); setPlinTitular(d.plinTitular || ""); setPlinActivo(Boolean(d.plinActivo)); setPlinMaximo(d.plinMaximo || 500); setPlinQr(d.plinQr || "");

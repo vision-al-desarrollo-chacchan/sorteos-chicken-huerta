@@ -11,7 +11,7 @@ export async function GET(r: Request) {
     ok: true,
     inicio: d.inicio_sorteo || "",
     fin: d.fin_sorteo || "",
-    yape: d.yape_numero || "",
+    yape: !d.yape_numero || d.yape_numero === "961745846" ? "932476860" : d.yape_numero,
     titular: d.yape_titular || "",
     yapeActivo: d.yape_activo !== "false",
     yapeMaximo: Number(d.yape_maximo || 500),

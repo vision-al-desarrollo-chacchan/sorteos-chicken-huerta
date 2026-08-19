@@ -2,7 +2,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import SorteoInfo from "./SorteoInfo";
 type TicketResult = { ok: boolean; tickets?: string[]; message?: string };
-type MetodoPago = { id: "yape" | "plin"; nombre: string; numero: string; titular: string; maximo: number; qr: string };
+type MetodoPago = { id: "yape" | "plin" | "bcp" | "interbank"; nombre: string; numero: string; titular: string; maximo: number; qr: string; tipo?: "billetera" | "banco"; cci?: string };
 export default function Home() {
   const [cantidad, setCantidad] = useState(1),
     [loading, setLoading] = useState(false),
@@ -18,7 +18,7 @@ export default function Home() {
     [yape, setYape] = useState(""),
     [titular, setTitular] = useState("Elvis Esteban Infantes Huerta"),
     [metodosPago, setMetodosPago] = useState<MetodoPago[]>([]),
-    [metodoId, setMetodoId] = useState<"yape" | "plin">("yape"),
+    [metodoId, setMetodoId] = useState<MetodoPago["id"]>("yape"),
     [precio, setPrecio] = useState(5),
     [premio1, setPremio1] = useState("Rezzio Kratos Pro 4.0"),
     [premio2, setPremio2] = useState("Tekken 300"),
@@ -212,8 +212,8 @@ export default function Home() {
         <article>
           <b>02</b>
           <div>
-            <strong>Paga por Yape o Plin</strong>
-            <span>Después aparecerá el QR y el total exacto.</span>
+            <strong>Paga por Yape o transferencia</strong>
+            <span>Elige Yape, BCP o Interbank y paga el total exacto.</span>
           </div>
         </article>
         <article>
@@ -230,7 +230,7 @@ export default function Home() {
         <p className="eyebrow">PARTICIPA AHORA</p>
         <h2>¿Listo para ganar?</h2>
         <p>
-          Llena tus datos, paga con Yape o Plin y recibe tus tickets en pocos pasos.
+          Llena tus datos, paga con Yape, BCP o Interbank y recibe tus tickets en pocos pasos.
         </p>
         <button className="primary" onClick={abrir}>
           COMPRAR TICKETS →
@@ -407,18 +407,24 @@ export default function Home() {
                 <p className="eyebrow">PAGO CON {metodoSeleccionado?.nombre.toUpperCase()}</p>
                 <h2 id="modalTitle">Paga S/{total}</h2>
                 <div className="modalPay">
-                  <img
-                    src={metodoSeleccionado?.qr}
-                    alt={`Código QR oficial de ${metodoSeleccionado?.nombre}`}
-                  />
+                  {metodoSeleccionado?.qr ? (
+                    <img
+                      src={metodoSeleccionado.qr}
+                      alt={`Código QR oficial de ${metodoSeleccionado.nombre}`}
+                    />
+                  ) : (
+                    <div className="bankBadge" aria-hidden="true">{metodoSeleccionado?.nombre}</div>
+                  )}
                   <div>
                     <b>{metodoSeleccionado?.titular}</b>
                     {metodoSeleccionado?.numero && (
-                      <strong className="yapeNumber">{metodoSeleccionado.nombre}: {metodoSeleccionado.numero}</strong>
+                      <strong className="yapeNumber">{metodoSeleccionado.tipo === "banco" ? "Cuenta" : metodoSeleccionado.nombre}: {metodoSeleccionado.numero}</strong>
+                    )}
+                    {metodoSeleccionado?.cci && (
+                      <strong className="yapeNumber">CCI: {metodoSeleccionado.cci}</strong>
                     )}
                     <p>
-                      Escanea el QR y paga el monto exacto. Luego adjunta tu
-                      comprobante.
+                      {metodoSeleccionado?.qr ? "Escanea el QR y paga el monto exacto." : "Transfiere el monto exacto a esta cuenta."} Luego adjunta tu comprobante.
                     </p>
                     <button
                       className="backBtn"
