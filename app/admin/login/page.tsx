@@ -1,15 +1,18 @@
 "use client";
 import { FormEvent, useState } from "react";
 import Link from "next/link";
+
 export default function Login() {
-  const [error, setError] = useState(""),
-    [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const f = new FormData(e.currentTarget),
-      r = await fetch("/api/admin/login", {
+    try {
+      const f = new FormData(e.currentTarget);
+      const r = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -17,14 +20,19 @@ export default function Login() {
           clave: f.get("clave"),
         }),
       });
-    if (r.ok) {
-      location.href = "/admin";
-      return;
+      const d = (await r.json().catch(() => ({}))) as { message?: string };
+      if (r.ok) {
+        location.href = "/admin";
+        return;
+      }
+      setError(d.message || `No se pudo iniciar sesión (error ${r.status}).`);
+    } catch {
+      setError("No se pudo conectar con el servidor. Intenta nuevamente.");
+    } finally {
+      setLoading(false);
     }
-    const d = await r.json();
-    setError(d.message || "No se pudo iniciar sesión");
-    setLoading(false);
   }
+
   return (
     <main className="adminLogin">
       <section>
@@ -39,12 +47,7 @@ export default function Login() {
           </label>
           <label>
             Contraseña
-            <input
-              name="clave"
-              type="password"
-              autoComplete="current-password"
-              required
-            />
+            <input name="clave" type="password" autoComplete="current-password" required />
           </label>
           <button className="primary" disabled={loading}>
             {loading ? "Ingresando…" : "Ingresar al panel"}
