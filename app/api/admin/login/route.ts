@@ -5,33 +5,23 @@ function toHex(buffer: ArrayBuffer) {
   return Array.from(new Uint8Array(buffer), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-async function attemptKey(request: Request) {
+async function visitorId(request: Request) {
   const ip = request.headers.get("cf-connecting-ip") || "desconocido";
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(ip));
-  return `admin_login_attempt_${toHex(digest).slice(0, 32)}`;
+  return `login-${toHex(digest).slice(0, 24)}`;
 }
-
-type Attempt = { intentos: number; bloqueado_hasta: number };
 
 export async function POST(request: Request) {
   let stage = "inicio";
   try {
     stage = "leer protección";
-    const key = await attemptKey(request);
-    const rows = await rest<Array<{ valor: string }>>(
-      "configuracion",
-      `select=valor&clave=eq.${encodeURIComponent(key)}&limit=1`,
+    const visitor = await visitorId(request);
+    const since = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    const failures = await rest<Array<{ creado: string }>>(
+      "auditoria",
+      `select=creado&accion=eq.LOGIN_FALLIDO&administrador=eq.${encodeURIComponent(visitor)}&creado=gte.${encodeURIComponent(since)}&order=creado.desc&limit=5`,
     );
-    let attempt: Attempt = { intentos: 0, bloqueado_hasta: 0 };
-    if (rows[0]?.valor) {
-      try {
-        attempt = JSON.parse(rows[0].valor) as Attempt;
-      } catch {
-        attempt = { intentos: 0, bloqueado_hasta: 0 };
-      }
-    }
-
-    if (attempt.bloqueado_hasta > Date.now()) {
+    if (failures.length >= 5) {
       return Response.json(
         { ok: false, message: "Demasiados intentos. Espera 15 minutos antes de volver a intentar." },
         { status: 429 },
@@ -46,36 +36,24 @@ export async function POST(request: Request) {
 
     stage = "verificar credenciales";
     if (!usuario || !clave || !(await verifyCredentials(usuario, clave))) {
-      const intentos = attempt.intentos + 1;
-      const bloqueado = intentos >= 5 ? Date.now() + 15 * 60 * 1000 : 0;
       stage = "registrar intento";
-      await rest("configuracion", "on_conflict=clave", {
+      await rest("auditoria", "", {
         method: "POST",
-        headers: { Prefer: "resolution=merge-duplicates" },
         body: JSON.stringify({
-          clave: key,
-          valor: JSON.stringify({
-            intentos: bloqueado ? 0 : intentos,
-            bloqueado_hasta: bloqueado,
-          }),
-          actualizado: new Date().toISOString(),
+          accion: "LOGIN_FALLIDO",
+          detalle: "Intento de acceso rechazado",
+          administrador: visitor,
+          creado: new Date().toISOString(),
         }),
       });
       return Response.json(
         {
           ok: false,
-          message: bloqueado
-            ? "Acceso bloqueado durante 15 minutos por seguridad."
-            : `Usuario o contraseña incorrectos. Quedan ${5 - intentos} intentos.`,
+          message: `Usuario o contraseña incorrectos. Quedan ${Math.max(0, 4 - failures.length)} intentos.`,
         },
-        { status: bloqueado ? 429 : 401 },
+        { status: 401 },
       );
     }
-
-    stage = "limpiar intentos";
-    await rest("configuracion", `clave=eq.${encodeURIComponent(key)}`, {
-      method: "DELETE",
-    });
 
     stage = "crear sesión";
     return Response.json(
