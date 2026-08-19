@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "sorteos-chicken-huerta",
+  "name": "sorteos-chicken-huerta-v2",
   "main": "worker/index.ts",
   "compatibility_date": "2026-08-15",
   "compatibility_flags": ["nodejs_compat"],
@@ -15,6 +15,5 @@
   "vars": {
     "SUPABASE_URL": "https://cfjrpmqwxthnqosqpoyc.supabase.co"
   },
-  "routes": [{ "pattern": "sorteo.chicken.huertadigital.net.pe", "custom_domain": true }],
   "observability": { "enabled": true, "head_sampling_rate": 1 }
 }
