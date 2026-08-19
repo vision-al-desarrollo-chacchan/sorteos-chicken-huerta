@@ -1,5 +1,5 @@
-function settings() {
-  const values = process.env;
+async function settings() {
+  const { env: values } = await import("cloudflare:workers");
   if (!values.SUPABASE_URL || !values.SUPABASE_SECRET_KEY) {
     throw new Error("Supabase no está configurado en el Worker.");
   }
@@ -7,7 +7,7 @@ function settings() {
 }
 
 export async function supabase<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const { url, key } = settings();
+  const { url, key } = await settings();
   const response = await fetch(`${url}${path}`, {
     ...init,
     headers: {
@@ -46,7 +46,7 @@ export function deleteReceipt(path: string) {
 }
 
 export async function downloadReceipt(path: string) {
-  const { url, key } = settings();
+  const { url, key } = await settings();
   return fetch(`${url}/storage/v1/object/authenticated/comprobantes/${path}`, {
     headers: { apikey: key, authorization: `Bearer ${key}` },
   });
