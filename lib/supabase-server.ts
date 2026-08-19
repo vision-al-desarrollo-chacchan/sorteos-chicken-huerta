@@ -17,7 +17,11 @@ export async function supabase<T>(path: string, init: RequestInit = {}): Promise
       ...init.headers,
     },
   });
-  if (!response.ok) {\n    const details = (await response.text()).slice(0, 500);\n    console.error("Supabase request failed", { status: response.status, path, details });\n    throw new Error(`Supabase respondió ${response.status}`);\n  }
+  if (!response.ok) {
+    const details = (await response.text()).slice(0, 500);
+    console.error("Supabase request failed", { status: response.status, path, details });
+    throw new Error(`Supabase respondió ${response.status}`);
+  }
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
 }
