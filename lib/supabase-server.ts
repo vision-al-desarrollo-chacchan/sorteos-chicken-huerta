@@ -42,6 +42,17 @@ export function uploadReceipt(path: string, file: File) {
   });
 }
 
+export async function receiptExists(path: string) {
+  const { url, key } = await settings();
+  const response = await fetch(`${url}/storage/v1/object/authenticated/comprobantes/${path}`, {
+    method: "HEAD",
+    headers: { apikey: key, authorization: `Bearer ${key}` },
+  });
+  if (response.status === 404) return false;
+  if (!response.ok) throw new Error(`No se pudo verificar el comprobante (${response.status}).`);
+  return true;
+}
+
 export function deleteReceipt(path: string) {
   return supabase("/storage/v1/object/comprobantes", {
     method: "DELETE",
