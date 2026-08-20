@@ -35,6 +35,19 @@ export default function Home() {
     return () => window.removeEventListener("keydown", close);
   }, []);
   useEffect(() => {
+    try {
+      const borrador = JSON.parse(sessionStorage.getItem("chicken-ticket-draft") || "null");
+      if (!borrador) return;
+      setNombre(String(borrador.nombre || ""));
+      setDni(String(borrador.dni || "").replace(/\D/g, "").slice(0, 8));
+      setCelular(String(borrador.celular || "").replace(/\D/g, "").slice(0, 9));
+      setCantidad(Math.min(100, Math.max(1, Number(borrador.cantidad) || 1)));
+    } catch { /* ignorar borradores dañados */ }
+  }, []);
+  useEffect(() => {
+    sessionStorage.setItem("chicken-ticket-draft", JSON.stringify({ nombre, dni, celular, cantidad }));
+  }, [nombre, dni, celular, cantidad]);
+  useEffect(() => {
     fetch("/api/sorteo", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => {
@@ -83,7 +96,9 @@ export default function Home() {
         method: "POST",
         body: form,
       });
-      setResult(await r.json());
+      const data = await r.json();
+      setResult(data);
+      if (data.ok) sessionStorage.removeItem("chicken-ticket-draft");
     } catch {
       setResult({
         ok: false,
@@ -450,7 +465,7 @@ export default function Home() {
                       Número de DNI
                       <input
                         value={dni}
-                        onChange={(e) => setDni(e.target.value)}
+                        onChange={(e) => setDni(e.target.value.replace(/\D/g, "").slice(0, 8))}
                         required
                         inputMode="numeric"
                         pattern="[0-9]{8}"
@@ -462,7 +477,7 @@ export default function Home() {
                       Número de WhatsApp
                       <input
                         value={celular}
-                        onChange={(e) => setCelular(e.target.value)}
+                        onChange={(e) => setCelular(e.target.value.replace(/\D/g, "").slice(0, 9))}
                         required
                         inputMode="tel"
                         pattern="[0-9]{9}"
