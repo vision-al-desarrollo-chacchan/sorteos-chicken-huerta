@@ -14,8 +14,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sorteos Chicken Huerta",
-  description: "Participa en los sorteos oficiales de Chicken Huerta. Consulta premios, precio, fechas, bases y estado de tus tickets.",
+  metadataBase: new URL("https://sorteos.chicken.huertadigital.net.pe"),
+  title: "Sorteos Chicken Huerta | Gana 2 motos por S/5",
+  description: "Sorteo oficial Chicken Huerta: compra tu ticket por S/5 y participa por una Kratos 400 Pro y una Tekken 300. Registro y consulta de tickets en línea.",
+  keywords: ["Sorteos Chicken Huerta", "sorteo de motos", "Chicken Huerta", "Kratos 400 Pro", "Tekken 300", "sorteos Perú"],
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: "Sorteos Chicken Huerta | 2 motos en juego",
+    description: "Participa por dos motos con tickets de S/5.",
+    url: "/",
+    siteName: "Sorteos Chicken Huerta",
+    locale: "es_PE",
+    type: "website",
+    images: [{ url: "/motos-sorteo.png", width: 1200, height: 630, alt: "Dos motos del sorteo Chicken Huerta" }],
+  },
   verification: {
     google: "dU57nJ_Tv3YoPCjTpSrsFmRPDIp5jNw16hoDysgcq8A",
   },
