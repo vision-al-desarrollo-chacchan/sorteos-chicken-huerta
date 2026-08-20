@@ -438,11 +438,14 @@ export default function Home() {
                     </button>
                   </div>
                 </div>
-                <form onSubmit={registrar}>
+                <form onSubmit={registrar} autoComplete="off">
                   <label>
                     N.º de operación
                     <input
                       name="operacion"
+                      autoComplete="off"
+                      inputMode="numeric"
+                      pattern="[A-Za-z0-9-]{4,40}"
                       required
                       placeholder={`Código único de ${metodoSeleccionado?.nombre}`}
                     />
