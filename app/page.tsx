@@ -418,7 +418,13 @@ export default function Home() {
                       alt={`Código QR oficial de ${metodoSeleccionado.nombre}`}
                     />
                   ) : (
-                    <div className="bankBadge" aria-hidden="true">{metodoSeleccionado?.nombre}</div>
+                    <div className={`bankBadge bankBadge-${metodoSeleccionado?.id}`}>
+                      <img
+                        src={metodoSeleccionado?.id === "bcp" ? "/logo-bcp.svg" : "/logo-interbank.svg"}
+                        alt={`Logo de ${metodoSeleccionado?.nombre}`}
+                      />
+                      <small>TRANSFERENCIA BANCARIA</small>
+                    </div>
                   )}
                   <div>
                     <b>{metodoSeleccionado?.titular}</b>
