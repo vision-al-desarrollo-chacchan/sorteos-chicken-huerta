@@ -78,6 +78,15 @@ test("sold physical tickets protect DNI and expose correction actions", async ()
   assert.match(source, /Se borrarán los datos del comprador/);
 });
 
+test("admin can adjust paid amount and digital ticket quantity together", async () => {
+  const api = await read("app/api/admin/ajustar/route.ts");
+  const page = await read("app/admin/page.tsx");
+  assert.match(api, /generar_tickets_fisicos/);
+  assert.match(api, /cantidad \* precio/);
+  assert.match(api, /AJUSTAR_TICKETS/);
+  assert.match(page, /Corregir monto\/tickets/);
+});
+
 test("test-data cleanup preserves configuration", async () => {
   const sql = await read("drizzle/0009_reset_for_fresh_test.sql");
   for (const table of ["ganadores", "tickets", "participantes", "auditoria", "admin_login_attempts"])

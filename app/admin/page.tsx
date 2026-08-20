@@ -100,6 +100,36 @@ export default function Admin() {
     }
     await load();
   }
+  async function ajustarTickets(registro: Registro) {
+    const precio = registro.cantidad > 0 ? registro.monto / registro.cantidad : 5;
+    const valor = prompt(
+      `¿Cuántos tickets pagó ${registro.nombre}? Cada ticket cuesta S/${precio}.`,
+      String(registro.cantidad),
+    );
+    if (valor === null) return;
+    const cantidad = Number(valor);
+    if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 100) {
+      alert("Ingresa una cantidad válida entre 1 y 100.");
+      return;
+    }
+    if (
+      !confirm(
+        `Se ajustará a ${cantidad} ticket${cantidad === 1 ? "" : "s"} y S/${cantidad * precio}. ¿Confirmas?`,
+      )
+    )
+      return;
+    const response = await fetch("/api/admin/ajustar", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: registro.id, cantidad }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      alert(data.message || "No se pudo corregir la cantidad.");
+      return;
+    }
+    await load();
+  }
   async function resetWinner(premio: number) {
     if (
       !confirm(
@@ -287,6 +317,9 @@ export default function Admin() {
                       <div className="actions">
                         <button onClick={() => change(r.id, "aprobado")}>
                           Confirmar pago
+                        </button>
+                        <button onClick={() => ajustarTickets(r)}>
+                          Corregir monto/tickets
                         </button>
                         <button
                           className="reject"
