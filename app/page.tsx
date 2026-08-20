@@ -420,7 +420,7 @@ export default function Home() {
                   ) : (
                     <div className={`bankBadge bankBadge-${metodoSeleccionado?.id}`}>
                       <img
-                        src={metodoSeleccionado?.id === "bcp" ? "/logo-bcp.svg" : "/logo-interbank.svg"}
+                        src={metodoSeleccionado?.id === "bcp" ? "/logo-bcp-oficial.png" : "/logo-interbank-oficial.png"}
                         alt={`Logo de ${metodoSeleccionado?.nombre}`}
                       />
                       <small>TRANSFERENCIA BANCARIA</small>
