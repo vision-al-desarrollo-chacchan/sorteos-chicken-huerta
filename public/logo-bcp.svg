@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 150" role="img" aria-labelledby="title">
+  <title id="title">BCP</title>
+  <rect width="420" height="150" rx="22" fill="#075baa"/>
+  <g fill="#f58220">
+    <path d="M42 42h45l24 33-24 33H42l24-33z"/>
+    <path d="M91 42h45l24 33-24 33H91l24-33z" opacity=".9"/>
+  </g>
+  <text x="180" y="99" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="72" font-weight="800" letter-spacing="-4">BCP</text>
+</svg>
