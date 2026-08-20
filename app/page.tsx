@@ -112,29 +112,120 @@ export default function Home() {
     await navigator.clipboard.writeText(result?.tickets?.join(", ") || "");
     alert("Tickets copiados");
   }
-  function descargar() {
+  function cargarImagen(src: string) {
+    return new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+  async function crearTicketDigital() {
+    const codes = result?.tickets || [];
+    const filas = Math.max(1, Math.ceil(codes.length / 2));
+    const canvas = document.createElement("canvas");
+    canvas.width = 1080;
+    canvas.height = Math.max(1350, 790 + filas * 105);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("No se pudo crear la imagen");
+    const [logo, moto1, moto2] = await Promise.all([
+      cargarImagen("/logo-chicken-huerta.jpg"),
+      cargarImagen(imagen1),
+      cargarImagen(imagen2),
+    ]);
+    const fondo = ctx.createLinearGradient(0, 0, 1080, canvas.height);
+    fondo.addColorStop(0, "#120b08");
+    fondo.addColorStop(.52, "#3a0908");
+    fondo.addColorStop(1, "#0a0705");
+    ctx.fillStyle = fondo;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#f4b321";
+    ctx.fillRect(0, 0, 1080, 18);
+    ctx.drawImage(logo, 55, 55, 150, 150);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 58px Arial";
+    ctx.fillText("TICKET OFICIAL", 245, 105);
+    ctx.fillStyle = "#f4b321";
+    ctx.font = "900 42px Arial";
+    ctx.fillText("SORTEO CHICKEN HUERTA", 245, 160);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "700 26px Arial";
+    ctx.fillText("UN TICKET PARTICIPA POR LAS 2 MOTOS", 245, 205);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(45, 245, 990, 330);
+    ctx.drawImage(moto1, 65, 275, 455, 245);
+    ctx.drawImage(moto2, 560, 275, 455, 245);
+    ctx.fillStyle = "#18150f";
+    ctx.font = "900 27px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(premio1.toUpperCase(), 290, 555);
+    ctx.fillText(premio2.toUpperCase(), 790, 555);
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#f4b321";
+    ctx.font = "900 32px Arial";
+    ctx.fillText(`PARTICIPANTE: ${nombre.toUpperCase()}`, 55, 635);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "700 25px Arial";
+    ctx.fillText(`DNI: ****${dni.slice(-4)}   ·   PRECIO: S/${precio} CADA TICKET`, 55, 680);
+    ctx.fillStyle = "#d62d20";
+    ctx.fillRect(45, 720, 990, 64);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 28px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("TUS CÓDIGOS DE PARTICIPACIÓN", 540, 762);
+    codes.forEach((code, index) => {
+      const col = index % 2;
+      const row = Math.floor(index / 2);
+      const x = 55 + col * 500;
+      const y = 820 + row * 105;
+      ctx.fillStyle = "#fff7d8";
+      ctx.fillRect(x, y, 470, 78);
+      ctx.strokeStyle = "#f4b321";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(x, y, 470, 78);
+      ctx.fillStyle = "#18150f";
+      ctx.font = "900 34px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(code, x + 235, y + 51);
+    });
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "700 23px Arial";
+    ctx.fillText("ESTADO: PENDIENTE DE VALIDACIÓN DE PAGO", 540, canvas.height - 105);
+    ctx.fillStyle = "#f4b321";
+    ctx.font = "900 21px Arial";
+    ctx.fillText("CONSERVA ESTA IMAGEN · TU CÓDIGO ES ÚNICO", 540, canvas.height - 60);
+    return await new Promise<Blob>((resolve, reject) =>
+      canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("No se pudo generar el ticket"))), "image/png"),
+    );
+  }
+  async function descargar() {
+    const blob = await crearTicketDigital();
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([texto()], { type: "text/plain" }));
-    a.download = "tickets-chicken-huerta.txt";
+    a.href = URL.createObjectURL(blob);
+    a.download = "ticket-chicken-huerta.png";
     a.click();
     URL.revokeObjectURL(a.href);
   }
-  function compartir() {
-    window.open(
-      `https://wa.me/?text=${encodeURIComponent(texto())}`,
-      "_blank",
-      "noopener,noreferrer",
-    );
+  async function compartir() {
+    const blob = await crearTicketDigital();
+    const archivo = new File([blob], "ticket-chicken-huerta.png", { type: "image/png" });
+    if (navigator.share && navigator.canShare?.({ files: [archivo] })) {
+      await navigator.share({ title: "Ticket Chicken Huerta", text: texto(), files: [archivo] });
+      return;
+    }
+    await descargar();
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${texto()}\nAdjunta la imagen descargada.`)}`, "_blank", "noopener,noreferrer");
   }
   function imprimir() {
     const codes = result?.tickets || [];
     const w = window.open("", "_blank", "noopener,noreferrer");
     if (!w) return;
     w.document.write(
-      `<title>Tickets Chicken Huerta</title><style>body{font-family:Arial;padding:24px}.t{border:2px dashed #222;padding:22px;margin:12px;display:inline-block;width:290px;text-align:center}.t b{display:block;font-size:28px;margin:18px}</style>${codes.map((c) => `<article class="t"><h2>CHICKEN HUERTA</h2><p>${premio1} y ${premio2} · S/${precio}</p><b>${c}</b><small>Pendiente de validación de pago</small></article>`).join("")}`,
+      `<title>Tickets Chicken Huerta</title><style>@page{size:A4;margin:8mm}*{box-sizing:border-box}body{font-family:Arial;margin:0;color:#17130f}.sheet{display:grid;grid-template-columns:1fr 1fr;gap:7mm}.t{border:1px solid #222;border-left:7px solid #d62d20;break-inside:avoid;overflow:hidden;min-height:82mm}.head{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#17130f;color:#fff}.head img{width:48px;height:48px;border-radius:8px;object-fit:cover}.head div{display:flex;flex-direction:column}.head small{color:#f4b321;font-weight:900}.price{margin-left:auto;background:#f4b321;color:#17130f;padding:7px 10px;font-weight:900}.motos{display:flex;height:70px;background:#fff}.motos img{width:50%;object-fit:contain}.body{padding:10px 12px}.body h2{font-size:15px;margin:0 0 5px}.body p{font-size:10px;margin:4px 0}.code{display:block;margin:10px 0;padding:12px;background:#fff1ca;border:1px dashed #8f6c14;text-align:center;font:900 25px monospace}.status{font-size:9px;color:#8b2017;font-weight:900}.legal{font-size:8px;color:#5d574f;margin-top:7px}</style><main class="sheet">${codes.map((c) => `<article class="t"><header class="head"><img src="/logo-chicken-huerta.jpg"><div><small>SORTEO OFICIAL</small><strong>CHICKEN HUERTA</strong></div><span class="price">S/${precio}</span></header><div class="motos"><img src="${imagen1}"><img src="${imagen2}"></div><div class="body"><h2>${premio1} + ${premio2}</h2><p><b>Participante:</b> ${nombre}</p><p><b>DNI:</b> ****${dni.slice(-4)}</p><b class="code">${c}</b><div class="status">PENDIENTE DE VALIDACIÓN DE PAGO</div><p class="legal">Este código es único. Solo participa después de confirmar el pago. Conserva este ticket.</p></div></article>`).join("")}</main>`,
     );
     w.document.close();
-    w.print();
+    w.onload = () => w.print();
   }
   const total = cantidad * precio;
   const metodosDisponibles = metodosPago.filter((m) => total <= m.maximo);
