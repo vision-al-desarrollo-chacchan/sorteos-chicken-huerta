@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 150" role="img" aria-labelledby="title">
+  <title id="title">Interbank</title>
+  <rect width="520" height="150" rx="22" fill="#087d3e"/>
+  <g transform="translate(34 36) rotate(-8 38 38)">
+    <rect width="72" height="72" rx="8" fill="#fff"/>
+    <rect x="15" y="15" width="42" height="42" rx="4" fill="#16a05d"/>
+  </g>
+  <text x="132" y="99" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="58" font-weight="700" letter-spacing="-2">Interbank</text>
+</svg>
