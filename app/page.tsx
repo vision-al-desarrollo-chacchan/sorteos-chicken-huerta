@@ -15,6 +15,8 @@ export default function Home() {
     [nombre, setNombre] = useState(""),
     [dni, setDni] = useState(""),
     [celular, setCelular] = useState(""),
+    [operacion, setOperacion] = useState(""),
+    [operacionActiva, setOperacionActiva] = useState(false),
     [yape, setYape] = useState(""),
     [titular, setTitular] = useState("Elvis Esteban Infantes Huerta"),
     [metodosPago, setMetodosPago] = useState<MetodoPago[]>([]),
@@ -61,6 +63,8 @@ export default function Home() {
     e.preventDefault();
     if (!metodoSeleccionado) return;
     setMetodoId(metodoSeleccionado.id);
+    setOperacion("");
+    setOperacionActiva(false);
     setStep(2);
   }
   async function registrar(e: FormEvent<HTMLFormElement>) {
@@ -73,6 +77,7 @@ export default function Home() {
     form.set("dni", dni);
     form.set("celular", celular);
     form.set("metodo", metodoId);
+    form.set("operacion", operacion);
     try {
       const r = await fetch("/api/participantes", {
         method: "POST",
@@ -442,8 +447,15 @@ export default function Home() {
                   <label>
                     N.º de operación
                     <input
-                      name="operacion"
-                      autoComplete="off"
+                      name="referencia_pago_manual"
+                      value={operacion}
+                      onChange={(e) => setOperacion(e.target.value.replace(/[^a-zA-Z0-9-]/g, "").slice(0, 40))}
+                      onFocus={() => {
+                        setOperacion("");
+                        setOperacionActiva(true);
+                      }}
+                      readOnly={!operacionActiva}
+                      autoComplete="new-password"
                       inputMode="numeric"
                       pattern="[A-Za-z0-9-]{4,40}"
                       required
