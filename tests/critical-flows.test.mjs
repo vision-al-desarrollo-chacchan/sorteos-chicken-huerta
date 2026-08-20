@@ -29,6 +29,17 @@ test("ticket price is read from current configuration", async () => {
   assert.match(source, /cantidad \* precio/);
 });
 
+test("identical payment receipt files are rejected even with a different operation", async () => {
+  const route = await read("app/api/participantes/route.ts");
+  const storage = await read("lib/supabase-server.ts");
+  assert.match(route, /SHA-256/);
+  assert.match(route, /receiptExists/);
+  assert.match(route, /Este comprobante ya fue utilizado/);
+  assert.match(route, /sha256\/\$\{comprobanteHash\}/);
+  assert.match(storage, /method: "HEAD"/);
+  assert.match(storage, /response\.status === 404/);
+});
+
 test("admin login blocks repeated password attempts", async () => {
   const source = await read("app/api/admin/login/route.ts");
   assert.match(source, /intentos >= 5/);
