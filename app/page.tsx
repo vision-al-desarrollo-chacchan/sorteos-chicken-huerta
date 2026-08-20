@@ -461,6 +461,13 @@ export default function Home() {
                       required
                       placeholder={`Código único de ${metodoSeleccionado?.nombre}`}
                     />
+                    <span className="operationHelp">
+                      <b>¿DÓNDE ENCUENTRO ESTE CÓDIGO?</b>
+                      Abre tu comprobante de {metodoSeleccionado?.nombre} y busca
+                      <strong> “N.º de operación”</strong>. Copia únicamente ese
+                      código. No escribas tu nombre ni tu número de celular.
+                      <small>Ejemplo: 12345678</small>
+                    </span>
                   </label>
                   <label>
                     Comprobante de pago
