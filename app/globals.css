@@ -22,3 +22,81 @@
 .paymentConfig{position:relative;margin:24px 0;padding:24px;border:2px solid #742284;border-radius:16px;background:#fff}.plinConfig{border-color:#0b9da5}.paymentConfigHead{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px}.paymentConfigHead h2{margin:2px 0;font-size:30px}.methodSwitch{display:flex;align-items:center;gap:9px;background:#f5efe5;padding:10px 14px;border-radius:30px}.methodSwitch input{width:20px;height:20px}.qrPreview{width:150px;height:150px;object-fit:contain;border:1px solid var(--line);border-radius:12px;margin-top:18px;background:#fff}.paymentConfig input:disabled{opacity:.55;background:#eee}.paymentMethods{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.paymentMethods button{border:2px solid var(--line);background:#fff;padding:11px 18px;border-radius:10px;font-weight:900;cursor:pointer}.paymentMethods button.active{border-color:#6b087c;background:#f6e9fb;color:#6b087c}.paymentLimit{color:#8b2017;font-weight:800}@media(max-width:700px){.paymentConfigHead{align-items:flex-start;flex-direction:column}}
 
 .bankBadge{width:190px;min-height:190px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,#0b2d6b,#0875c9);color:#fff;font-size:28px;font-weight:1000;letter-spacing:.02em;text-align:center;padding:20px}.modalPay .yapeNumber{display:block;margin-top:8px;overflow-wrap:anywhere}
+
+/* Experiencia móvil de la página pública */
+@media(max-width:800px){
+  html{scroll-padding-top:122px}
+  body{overflow-x:hidden}
+  .nav{height:auto;min-height:72px;padding:8px 14px;gap:10px;flex-wrap:wrap}
+  .brand{min-width:0;gap:8px}
+  .brand img{width:46px;height:46px;flex:0 0 auto}
+  .brand span{font-size:15px;white-space:nowrap}
+  .nav nav{display:flex;width:100%;gap:8px;overflow-x:auto;padding:2px 0 5px;scrollbar-width:none}
+  .nav nav::-webkit-scrollbar{display:none}
+  .nav nav a,.nav nav button{flex:0 0 auto;min-height:40px;padding:10px 13px;border:1px solid #d8cdbc;border-radius:999px;background:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center}
+  .nav nav button{background:var(--red);border-color:var(--red);color:#fff}
+  .prizeShowcase{min-height:auto;padding:24px 14px 32px}
+  .showcaseIntro{margin-bottom:18px}
+  .showcaseIntro .eyebrow{font-size:10px;letter-spacing:.13em;margin-bottom:9px}
+  .showcaseIntro h1{font-size:clamp(34px,11vw,46px);line-height:.96;margin-bottom:10px}
+  .showcaseIntro>p:last-child{font-size:15px;line-height:1.45;margin:0}
+  .compactAnnouncement{margin-bottom:14px}
+  .compactAnnouncement .dateRange{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .compactAnnouncement .dateRange article{min-width:0;padding:9px}
+  .compactAnnouncement .dateRange span{font-size:9px;letter-spacing:.07em}
+  .compactAnnouncement .dateRange strong{font-size:12px;overflow-wrap:anywhere}
+  .bikeCards{gap:18px}
+  .bikeCard{border-radius:13px}
+  .bikePhoto{height:clamp(230px,72vw,320px)}
+  .configPrizeImage{padding:4px 8px 0}
+  .bikePhoto>div{left:15px;right:78px;bottom:14px}
+  .bikePhoto h2{font-size:20px;line-height:1.05}
+  .ticketBadge{top:11px;right:11px;padding:9px 10px}
+  .ticketBadge b{font-size:17px}
+  .bikeInfo{padding:17px 15px}
+  .bikeInfo h3{font-size:21px;margin:6px 0}
+  .bikeInfo p{line-height:1.45}
+  .bikeInfo button,.primary{min-height:50px;font-size:14px}
+  .bothNotice{font-size:13px;line-height:1.55;padding:0 5px}
+  .steps{padding:30px 18px;gap:25px}
+  .steps article{gap:14px}
+  .steps b{font-size:25px}
+  .quickJoin{padding:45px 18px}
+  .quickJoin h2{font-size:34px}
+  .quickJoin p{font-size:16px;line-height:1.5}
+  .rules{padding:45px 16px}
+  .rules h2{font-size:34px}
+  .ruleGrid article{padding:18px}
+  .announcement{padding:42px 16px}
+  .lookup{padding:45px 16px;gap:22px}
+  .lookup h2{font-size:34px}
+  .lookup form{padding:16px;gap:12px}
+  .lookup button{min-height:50px;border-radius:4px}
+  footer{padding:36px 18px;line-height:1.5}
+  .modalBackdrop{place-items:end center;padding:0;background:rgba(0,0,0,.76)}
+  .ticketModal{width:100%;max-height:94dvh;border-radius:20px 20px 0 0;padding:22px 16px calc(20px + env(safe-area-inset-bottom));overscroll-behavior:contain}
+  .ticketModal h2{font-size:28px;padding-right:34px}
+  .modalClose{position:sticky;float:right;top:0;z-index:3;margin:-8px -4px 0 8px;background:#eee}
+  .modalProgress{clear:both;margin:0 0 18px;gap:6px}
+  .modalProgress span{padding:7px 9px;font-size:11px}
+  .ticketModal form{padding-top:12px;gap:16px}
+  input,textarea,select{font-size:16px}
+  .total{padding:15px}
+  .total strong{font-size:25px}
+  .paymentMethods{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .paymentMethods button{padding:11px 8px;font-size:12px}
+  .modalPay{padding:13px;gap:14px}
+  .modalPay img{max-height:230px}
+  .bankBadge{width:100%;min-height:110px}
+  .ticketActions{display:grid;grid-template-columns:1fr 1fr}
+  .ticketActions button{min-height:44px}
+}
+
+@media(max-width:380px){
+  .brand span{font-size:13px}
+  .nav nav a,.nav nav button{padding:9px 11px}
+  .showcaseIntro h1{font-size:34px}
+  .compactAnnouncement .dateRange{grid-template-columns:1fr}
+  .bikePhoto{height:235px}
+  .paymentMethods,.ticketActions{grid-template-columns:1fr}
+}
