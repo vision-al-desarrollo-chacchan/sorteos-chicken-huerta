@@ -48,7 +48,9 @@ export async function receiptExists(path: string) {
     method: "HEAD",
     headers: { apikey: key, authorization: `Bearer ${key}` },
   });
-  if (response.status === 404) return false;
+  // Supabase Storage returns 400 (instead of 404) for an object that does not exist.
+  // Treat both responses as "available" so new receipts can be uploaded.
+  if (response.status === 400 || response.status === 404) return false;
   if (!response.ok) throw new Error(`No se pudo verificar el comprobante (${response.status}).`);
   return true;
 }
