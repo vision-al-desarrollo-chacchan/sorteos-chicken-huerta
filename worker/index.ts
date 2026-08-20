@@ -18,6 +18,22 @@ const worker = {
       });
     }
 
+    // Google and older browsers commonly request this exact path.
+    // Serve the official Chicken Huerta PNG logo here instead of returning 404.
+    if (url.pathname === "/favicon.ico") {
+      const faviconUrl = new URL("/favicon.png", url);
+      const faviconRequest = new Request(faviconUrl, request);
+      const faviconResponse = await handler.fetch(faviconRequest, env, ctx);
+      const headers = new Headers(faviconResponse.headers);
+      headers.set("cache-control", "public, max-age=86400");
+
+      return new Response(faviconResponse.body, {
+        status: faviconResponse.status,
+        statusText: faviconResponse.statusText,
+        headers,
+      });
+    }
+
     return handler.fetch(request, env, ctx);
   },
 } satisfies ExportedHandler<Env>;
