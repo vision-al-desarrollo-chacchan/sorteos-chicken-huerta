@@ -1,4 +1,4 @@
-import { deleteReceipt, rest, rpc, uploadReceipt } from "@/lib/supabase-server";
+import { deleteReceipt, receiptExists, rest, rpc, uploadReceipt } from "@/lib/supabase-server";
 
 function horaPeru(value: string) {
   return /(?:Z|[+-]\d\d:\d\d)$/.test(value) ? value : `${value}:00-05:00`;
@@ -38,8 +38,20 @@ export async function POST(request: Request) {
     const duplicate = await rest<Array<{ id: number }>>("participantes", `select=id&operacion=ilike.${encodeURIComponent(operacionGuardada)}&limit=1`);
     if (duplicate.length) return Response.json({ ok: false, message: "Este número de operación ya fue registrado." }, { status: 409 });
 
-    const ext = comprobante.name.split(".").pop()?.replace(/[^a-z0-9]/gi, "").toLowerCase() || "bin";
-    receiptPath = `${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${ext}`;
+    const digest = await crypto.subtle.digest("SHA-256", await comprobante.arrayBuffer());
+    const comprobanteHash = Array.from(new Uint8Array(digest), (byte) =>
+      byte.toString(16).padStart(2, "0"),
+    ).join("");
+    receiptPath = `sha256/${comprobanteHash}`;
+    if (await receiptExists(receiptPath))
+      return Response.json(
+        {
+          ok: false,
+          message:
+            "Este comprobante ya fue utilizado. No puedes registrarlo nuevamente cambiando el número de operación.",
+        },
+        { status: 409 },
+      );
     await uploadReceipt(receiptPath, comprobante);
     const result = await rpc<{ participante_id: number; tickets: string[] }>("registrar_participante", { p_nombre: nombre, p_dni: dni, p_celular: celular, p_operacion: operacionGuardada, p_cantidad: cantidad, p_monto: total, p_comprobante_key: receiptPath });
     return Response.json({ ok: true, tickets: result.tickets });
