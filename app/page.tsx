@@ -605,7 +605,13 @@ export default function Home() {
                     <small>Foto o PDF, máximo 5 MB.</small>
                   </label>
                   <label className="check">
-                    <input type="checkbox" required /> Confirmo que el pago es verdadero y acepto las <a href="/bases-legales" target="_blank">bases legales</a> y el <a href="/privacidad" target="_blank">aviso de privacidad</a>. Si no es válido, mis tickets serán anulados.
+                    <input type="checkbox" required />
+                    <span>
+                      Confirmo que el pago es verdadero y acepto las{" "}
+                      <a href="/bases-legales" target="_blank">bases legales</a>{" "}
+                      y el <a href="/privacidad" target="_blank">aviso de privacidad</a>.
+                      Si no es válido, mis tickets serán anulados.
+                    </span>
                   </label>
                   <button className="primary submit" disabled={loading}>
                     {loading
