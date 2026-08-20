@@ -27,9 +27,13 @@ export async function POST(request: Request) {
     const metodoValido = ["yape", "plin", "bcp", "interbank"].includes(metodo);
     const activo = metodo === "yape" ? cfg.yape_activo !== "false" : metodo === "plin" ? cfg.plin_activo === "true" : metodo === "bcp" || metodo === "interbank";
     const maximo = Number(metodo === "yape" ? cfg.yape_maximo || 500 : metodo === "plin" ? cfg.plin_maximo || 500 : 100000);
-    if (nombre.length < 3 || nombre.length > 100 || !/^\d{8}$/.test(dni) || !/^9\d{8}$/.test(celular) || !/^[a-zA-Z0-9-]{4,40}$/.test(operacion) || !Number.isInteger(cantidad) || cantidad < 1 || cantidad > 100 || !metodoValido || !activo || !Number.isFinite(maximo) || total > maximo || !(comprobante instanceof File) || comprobante.size < 1 || comprobante.size > 5_000_000 || !allowed.includes(comprobante.type)) {
-      return Response.json({ ok: false, message: "Revisa tus datos. El celular debe comenzar en 9 y el comprobante debe ser válido." }, { status: 400 });
-    }
+    if (nombre.length < 3 || nombre.length > 100) return Response.json({ ok: false, message: "Ingresa correctamente tu nombre y apellidos." }, { status: 400 });
+    if (!/^\d{8}$/.test(dni)) return Response.json({ ok: false, message: "El DNI debe tener exactamente 8 números." }, { status: 400 });
+    if (!/^9\d{8}$/.test(celular)) return Response.json({ ok: false, message: "El celular debe tener 9 números y comenzar en 9." }, { status: 400 });
+    if (!/^[a-zA-Z0-9-]{4,40}$/.test(operacion)) return Response.json({ ok: false, message: "Ingresa el código de operación del pago, no tu nombre." }, { status: 400 });
+    if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 100) return Response.json({ ok: false, message: "La cantidad de tickets no es válida." }, { status: 400 });
+    if (!metodoValido || !activo || !Number.isFinite(maximo) || total > maximo) return Response.json({ ok: false, message: "El método o monto de pago seleccionado no está disponible." }, { status: 400 });
+    if (!(comprobante instanceof File) || comprobante.size < 1 || comprobante.size > 5_000_000 || !allowed.includes(comprobante.type)) return Response.json({ ok: false, message: "Adjunta un comprobante JPG, PNG, WEBP o PDF de máximo 5 MB." }, { status: 400 });
     const operacionGuardada = `${metodo.toUpperCase()}-${operacion}`;
     const duplicate = await rest<Array<{ id: number }>>("participantes", `select=id&operacion=ilike.${encodeURIComponent(operacionGuardada)}&limit=1`);
     if (duplicate.length) return Response.json({ ok: false, message: "Este número de operación ya fue registrado." }, { status: 409 });
