@@ -247,6 +247,18 @@ export default function Home() {
   const metodoSeleccionado = metodosDisponibles.find((m) => m.id === metodoId) || metodosDisponibles[0];
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "Chicken Huerta",
+            url: "https://sorteos.chicken.huertadigital.net.pe/",
+            logo: "https://sorteos.chicken.huertadigital.net.pe/logo-chicken-huerta.jpg",
+          }),
+        }}
+      />
       <header className="nav">
         <a className="brand" href="#inicio">
           <img src="/logo-chicken-huerta.jpg" alt="Logo Chicken Huerta" />
