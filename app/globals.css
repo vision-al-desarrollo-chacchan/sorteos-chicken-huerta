@@ -101,3 +101,10 @@
   .bikePhoto{height:235px}
   .paymentMethods,.ticketActions{grid-template-columns:1fr}
 }
+
+.lookup form{grid-template-columns:1fr auto}
+.lookupTickets{display:grid;gap:8px;grid-column:1/-1}
+.lookupTickets article{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 14px;background:#fff;border:1px solid var(--line)}
+.lookupTickets strong{font-family:monospace;font-size:17px}
+.lookupTickets span{font-weight:800;color:var(--red);text-transform:uppercase;font-size:12px}
+@media(max-width:800px){.lookup form{grid-template-columns:1fr}.lookupTickets article{align-items:flex-start;flex-direction:column}}
