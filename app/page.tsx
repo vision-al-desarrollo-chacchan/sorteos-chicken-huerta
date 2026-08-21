@@ -2,14 +2,15 @@
 import { FormEvent, useEffect, useState } from "react";
 import SorteoInfo from "./SorteoInfo";
 type TicketResult = { ok: boolean; tickets?: string[]; message?: string };
+type ConsultaTicket = { codigo: string; estado: string };
 type MetodoPago = { id: "yape" | "plin" | "bcp" | "interbank"; nombre: string; numero: string; titular: string; maximo: number; qr: string; tipo?: "billetera" | "banco"; cci?: string };
 export default function Home() {
   const [cantidad, setCantidad] = useState(1),
     [loading, setLoading] = useState(false),
     [result, setResult] = useState<TicketResult | null>(null),
-    [consulta, setConsulta] = useState(""),
     [consultaDni, setConsultaDni] = useState(""),
     [consultaMsg, setConsultaMsg] = useState(""),
+    [consultaTickets, setConsultaTickets] = useState<ConsultaTicket[]>([]),
     [open, setOpen] = useState(false),
     [step, setStep] = useState(1),
     [nombre, setNombre] = useState(""),
@@ -110,15 +111,16 @@ export default function Home() {
   }
   async function consultar(e: FormEvent) {
     e.preventDefault();
-    const r = await fetch(
-        `/api/participantes?ticket=${encodeURIComponent(consulta)}&identidad=${encodeURIComponent(consultaDni)}`,
-      ),
+    setConsultaMsg("");
+    setConsultaTickets([]);
+    const r = await fetch(`/api/participantes?dni=${encodeURIComponent(consultaDni)}`),
       d = await r.json();
-    setConsultaMsg(
-      d.encontrado
-        ? `${d.ticket} pertenece a ${d.nombre}. Estado: ${d.estado}.`
-        : d.message || "No encontramos ese ticket.",
-    );
+    if (d.encontrado) {
+      setConsultaTickets(d.tickets || []);
+      setConsultaMsg(`${d.nombre}, tienes ${d.total} ticket${d.total === 1 ? "" : "s"} registrado${d.total === 1 ? "" : "s"}.`);
+    } else {
+      setConsultaMsg(d.message || "No encontramos tickets registrados con ese DNI.");
+    }
   }
   function texto() {
     return `Sorteo Chicken Huerta\nMis tickets: ${result?.tickets?.join(", ")}\nEstado: pendiente de revisión de pago.`;
@@ -405,28 +407,34 @@ export default function Home() {
       <section className="lookup" id="consultar">
         <div>
           <p className="eyebrow">VERIFICACIÓN</p>
-          <h2>Consulta tu ticket</h2>
-          <p>Ingresa el código completo para comprobar su registro y estado.</p>
+          <h2>Consulta tus tickets</h2>
+          <p>Ingresa tu DNI para ver únicamente tus tickets y su estado.</p>
         </div>
         <form onSubmit={consultar}>
-          <input
-            value={consulta}
-            onChange={(e) => setConsulta(e.target.value.toUpperCase())}
-            placeholder="CH-000001"
-            required
-          />
           <input
             className="lookupIdentity"
             value={consultaDni}
             onChange={(e) =>
-              setConsultaDni(e.target.value.replace(/\D/g, "").slice(0, 4))
+              setConsultaDni(e.target.value.replace(/\D/g, "").slice(0, 8))
             }
             inputMode="numeric"
-            placeholder="Últimos 4 dígitos del DNI"
+            pattern="[0-9]{8}"
+            maxLength={8}
+            placeholder="Ingresa tu DNI de 8 dígitos"
             required
           />
           <button>Consultar</button>
           {consultaMsg && <p className="lookupResult">{consultaMsg}</p>}
+          {consultaTickets.length > 0 && (
+            <div className="lookupTickets">
+              {consultaTickets.map((ticket) => (
+                <article key={ticket.codigo}>
+                  <strong>{ticket.codigo}</strong>
+                  <span>{ticket.estado}</span>
+                </article>
+              ))}
+            </div>
+          )}
         </form>
       </section>
       <footer>
