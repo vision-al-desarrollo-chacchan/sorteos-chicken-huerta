@@ -29,6 +29,18 @@ test("ticket price is read from current configuration", async () => {
   assert.match(source, /cantidad \* precio/);
 });
 
+test("customers can find all digital and physical tickets using only their full DNI", async () => {
+  const api = await read("app/api/participantes/route.ts");
+  const page = await read("app/page.tsx");
+  assert.match(api, /searchParams\.get\("dni"\)/);
+  assert.match(api, /dni=eq\.\$\{dni\}/);
+  assert.match(api, /comprador_dni=eq\.\$\{dni\}/);
+  assert.match(api, /cantidad: tickets\.length/);
+  assert.match(page, /Consulta tus tickets con tu DNI/);
+  assert.match(page, /ConsultaTicket/);
+  assert.doesNotMatch(page, /Últimos 4 dígitos del DNI/);
+});
+
 test("identical payment receipt files are rejected even with a different operation", async () => {
   const route = await read("app/api/participantes/route.ts");
   const storage = await read("lib/supabase-server.ts");
