@@ -89,6 +89,18 @@ test("sold physical tickets protect DNI and expose correction actions", async ()
   assert.match(source, /Se borrarán los datos del comprador/);
 });
 
+test("public lookup uses one full DNI and returns all tickets for that customer", async () => {
+  const page = await read("app/page.tsx");
+  const api = await read("app/api/participantes/route.ts");
+  assert.match(page, /participantes\?dni=/);
+  assert.match(page, /pattern="\[0-9\]\{8\}"/);
+  assert.doesNotMatch(page, /Últimos 4 dígitos del DNI/);
+  assert.match(api, /comprador_dni=eq\.\$\{encodeURIComponent\(dni\)\}/);
+  assert.match(api, /participante_id=in\.\(\$\{ids\.join\("[,]"\)\}\)/);
+  assert.match(api, /total: tickets\.length/);
+  assert.match(api, /tickets: tickets\.map/);
+});
+
 test("admin can adjust paid amount and digital ticket quantity together", async () => {
   const api = await read("app/api/admin/ajustar/route.ts");
   const page = await read("app/admin/page.tsx");
