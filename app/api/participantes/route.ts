@@ -64,23 +64,43 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
-    const codigo = url.searchParams.get("ticket")?.trim().toUpperCase();
-    const identidad = url.searchParams.get("identidad")?.trim();
-    if (!codigo || !/^CH-\d{6,}$/.test(codigo)) return Response.json({ encontrado: false });
-    const tickets = await rest<Array<{ codigo: string; tipo: string; estado: string; participante_id: number | null; comprador_nombre: string | null; comprador_dni: string | null }>>("tickets", `select=codigo,tipo,estado,participante_id,comprador_nombre,comprador_dni&codigo=eq.${codigo}&limit=1`);
-    const ticket = tickets[0];
-    if (!ticket) return Response.json({ encontrado: false });
-    let nombre = ticket.comprador_nombre || "PORTADOR";
-    let dni = ticket.comprador_dni || "";
-    let estado = ticket.estado;
-    if (ticket.participante_id) {
-      const participants = await rest<Array<{ nombre: string; dni: string; estado: string }>>("participantes", `select=nombre,dni,estado&id=eq.${ticket.participante_id}&limit=1`);
-      if (participants[0]) ({ nombre, dni, estado } = participants[0]);
-    }
-    if (dni.slice(-4) && identidad !== dni.slice(-4)) return Response.json({ encontrado: false, message: "El código o los últimos 4 dígitos del DNI no coinciden." });
+    const dni = url.searchParams.get("dni")?.trim();
+    if (!dni || !/^\d{8}$/.test(dni))
+      return Response.json(
+        { encontrado: false, message: "Ingresa un DNI válido de 8 dígitos." },
+        { status: 400 },
+      );
+    const participantes = await rest<Array<{ id: number; nombre: string }>>(
+      "participantes",
+      `select=id,nombre&dni=eq.${encodeURIComponent(dni)}&order=id.asc`,
+    );
+    const ids = participantes.map((participante) => participante.id);
+    const [digitales, fisicos] = await Promise.all([
+      ids.length
+        ? rest<Array<{ codigo: string; estado: string }>>(
+            "tickets",
+            `select=codigo,estado&participante_id=in.(${ids.join(",")})&order=id.asc`,
+          )
+        : Promise.resolve([]),
+      rest<Array<{ codigo: string; estado: string; comprador_nombre: string | null }>>(
+        "tickets",
+        `select=codigo,estado,comprador_nombre&comprador_dni=eq.${encodeURIComponent(dni)}&order=id.asc`,
+      ),
+    ]);
+    const tickets = Array.from(
+      new Map([...digitales, ...fisicos].map((ticket) => [ticket.codigo, ticket])).values(),
+    );
+    if (!tickets.length)
+      return Response.json({ encontrado: false, message: "No encontramos tickets registrados con ese DNI." });
+    const nombre = participantes[0]?.nombre || fisicos[0]?.comprador_nombre || "Cliente";
     const partes = nombre.trim().split(/\s+/);
     const estados: Record<string, string> = { pendiente: "pendiente de revisión", aprobado: "pago confirmado", rechazado: "ANULADO", disponible: "disponible", vendido: "vendido y habilitado", anulado: "ANULADO" };
-    return Response.json({ encontrado: true, ticket: ticket.codigo, nombre: `${partes[0]}${partes[1] ? ` ${partes[1][0]}.` : ""}`, estado: estados[estado] || estado });
+    return Response.json({
+      encontrado: true,
+      nombre: `${partes[0]}${partes[1] ? ` ${partes[1][0]}.` : ""}`,
+      total: tickets.length,
+      tickets: tickets.map((ticket) => ({ codigo: ticket.codigo, estado: estados[ticket.estado] || ticket.estado })),
+    });
   } catch {
     return Response.json({ encontrado: false }, { status: 500 });
   }
