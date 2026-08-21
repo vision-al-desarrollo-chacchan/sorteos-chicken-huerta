@@ -2,14 +2,16 @@
 import { FormEvent, useEffect, useState } from "react";
 import SorteoInfo from "./SorteoInfo";
 type TicketResult = { ok: boolean; tickets?: string[]; message?: string };
+type ConsultaTicket = { codigo: string; estado: string };
 type MetodoPago = { id: "yape" | "plin" | "bcp" | "interbank"; nombre: string; numero: string; titular: string; maximo: number; qr: string; tipo?: "billetera" | "banco"; cci?: string };
 export default function Home() {
   const [cantidad, setCantidad] = useState(1),
     [loading, setLoading] = useState(false),
     [result, setResult] = useState<TicketResult | null>(null),
-    [consulta, setConsulta] = useState(""),
     [consultaDni, setConsultaDni] = useState(""),
     [consultaMsg, setConsultaMsg] = useState(""),
+    [consultaTickets, setConsultaTickets] = useState<ConsultaTicket[]>([]),
+    [consultando, setConsultando] = useState(false),
     [open, setOpen] = useState(false),
     [step, setStep] = useState(1),
     [nombre, setNombre] = useState(""),
@@ -110,15 +112,24 @@ export default function Home() {
   }
   async function consultar(e: FormEvent) {
     e.preventDefault();
-    const r = await fetch(
-        `/api/participantes?ticket=${encodeURIComponent(consulta)}&identidad=${encodeURIComponent(consultaDni)}`,
-      ),
-      d = await r.json();
-    setConsultaMsg(
-      d.encontrado
-        ? `${d.ticket} pertenece a ${d.nombre}. Estado: ${d.estado}.`
-        : d.message || "No encontramos ese ticket.",
-    );
+    setConsultando(true);
+    setConsultaMsg("");
+    setConsultaTickets([]);
+    try {
+      const r = await fetch(`/api/participantes?dni=${encodeURIComponent(consultaDni)}`, { cache: "no-store" });
+      const d = await r.json();
+      const encontrados = Array.isArray(d.tickets) ? d.tickets : [];
+      setConsultaTickets(encontrados);
+      setConsultaMsg(
+        d.encontrado
+          ? `Tienes ${d.cantidad} ${d.cantidad === 1 ? "ticket registrado" : "tickets registrados"}.`
+          : d.message || "No encontramos tickets registrados con este DNI.",
+      );
+    } catch {
+      setConsultaMsg("No pudimos realizar la consulta. Intenta nuevamente.");
+    } finally {
+      setConsultando(false);
+    }
   }
   function texto() {
     return `Sorteo Chicken Huerta\nMis tickets: ${result?.tickets?.join(", ")}\nEstado: pendiente de revisión de pago.`;
@@ -405,28 +416,33 @@ export default function Home() {
       <section className="lookup" id="consultar">
         <div>
           <p className="eyebrow">VERIFICACIÓN</p>
-          <h2>Consulta tu ticket</h2>
-          <p>Ingresa el código completo para comprobar su registro y estado.</p>
+          <h2>Consulta tus tickets con tu DNI</h2>
+          <p>Ingresa tu DNI y revisa cuántos tickets tienes y el estado de cada uno.</p>
         </div>
         <form onSubmit={consultar}>
-          <input
-            value={consulta}
-            onChange={(e) => setConsulta(e.target.value.toUpperCase())}
-            placeholder="CH-000001"
-            required
-          />
           <input
             className="lookupIdentity"
             value={consultaDni}
             onChange={(e) =>
-              setConsultaDni(e.target.value.replace(/\D/g, "").slice(0, 4))
+              setConsultaDni(e.target.value.replace(/\D/g, "").slice(0, 8))
             }
             inputMode="numeric"
-            placeholder="Últimos 4 dígitos del DNI"
+            pattern="[0-9]{8}"
+            maxLength={8}
+            placeholder="Ingresa tu DNI de 8 dígitos"
             required
           />
-          <button>Consultar</button>
+          <button disabled={consultando}>{consultando ? "Consultando..." : "Consultar mis tickets"}</button>
           {consultaMsg && <p className="lookupResult">{consultaMsg}</p>}
+          {consultaTickets.length > 0 && (
+            <div className="lookupTickets">
+              {consultaTickets.map((ticket) => (
+                <p key={ticket.codigo}>
+                  <b>{ticket.codigo}</b><span>{ticket.estado}</span>
+                </p>
+              ))}
+            </div>
+          )}
         </form>
       </section>
       <footer>
