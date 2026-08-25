@@ -5,7 +5,7 @@ type TicketResult = { ok: boolean; tickets?: string[]; message?: string };
 type ConsultaTicket = { codigo: string; estado: string };
 type MetodoPago = { id: "yape" | "plin" | "bcp" | "interbank"; nombre: string; numero: string; titular: string; maximo: number; qr: string; tipo?: "billetera" | "banco"; cci?: string };
 export default function Home() {
-  const [cantidad, setCantidad] = useState(1),
+  const [cantidad, setCantidad] = useState<number | "">(1),
     [loading, setLoading] = useState(false),
     [result, setResult] = useState<TicketResult | null>(null),
     [consultaDni, setConsultaDni] = useState(""),
@@ -67,7 +67,7 @@ export default function Home() {
     setOpen(true);
     setStep(1);
     setResult(null);
-    const disponible = metodosPago.find((m) => cantidad * precio <= m.maximo);
+    const disponible = metodosPago.find((m) => Number(cantidad) * precio <= m.maximo);
     if (disponible) setMetodoId(disponible.id);
   }
   function cerrar() {
@@ -86,7 +86,7 @@ export default function Home() {
     setLoading(true);
     setResult(null);
     const form = new FormData(e.currentTarget);
-    form.set("cantidad", String(cantidad));
+    form.set("cantidad", String(Number(cantidad)));
     form.set("nombre", nombre);
     form.set("dni", dni);
     form.set("celular", celular);
@@ -244,7 +244,7 @@ export default function Home() {
     w.document.close();
     w.onload = () => w.print();
   }
-  const total = cantidad * precio;
+  const total = Number(cantidad) * precio;
   const metodosDisponibles = metodosPago.filter((m) => total <= m.maximo);
   const metodoSeleccionado = metodosDisponibles.find((m) => m.id === metodoId) || metodosDisponibles[0];
   return (
@@ -513,9 +513,20 @@ export default function Home() {
                       min={1}
                       max={100}
                       value={cantidad}
-                      onChange={(e) =>
-                        setCantidad(Math.max(1, Number(e.target.value)))
-                      }
+                      inputMode="numeric"
+                      required
+                      onFocus={(e) => e.currentTarget.select()}
+                      onChange={(e) => {
+                        const valor = e.target.value;
+                        if (valor === "") {
+                          setCantidad("");
+                          return;
+                        }
+                        setCantidad(Math.min(100, Math.max(1, Number(valor))));
+                      }}
+                      onBlur={() => {
+                        if (cantidad === "") setCantidad(1);
+                      }}
                     />
                   </label>
                   <div className="total">
